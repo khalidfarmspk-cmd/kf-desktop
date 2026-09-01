@@ -361,6 +361,9 @@ public final class SyncService {
         if ("expense".equals(t)) {
             return "/api/sync/expenses";
         }
+        if ("user".equals(t)) {
+            return "/api/sync/users";
+        }
         return "/api/sync/" + t;
     }
 

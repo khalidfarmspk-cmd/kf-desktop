@@ -404,6 +404,10 @@ public class Form_User extends javax.swing.JPanel {
             ps.setString(2, row_id);
             ps.executeUpdate();
             ps.close();
+            try {
+                config.SyncOutbox.enqueueUserById(Integer.parseInt(row_id));
+            } catch (NumberFormatException ignore) {
+            }
             if (lb_passwordMeta != null) {
                 lb_passwordMeta.setText("Last changed "
                         + new SimpleDateFormat("d MMM yyyy").format(new Date()));
@@ -800,7 +804,8 @@ public class Form_User extends javax.swing.JPanel {
                         String hash = BCrypt.hashpw(row_txtpassword, BCrypt.gensalt(10));
                         PreparedStatement ps = conn.prepareStatement(
                                 "INSERT INTO users(nama_user, alamat_user, telp_user, username_user, "
-                                + "password_user, level_user, status_user, uuid) VALUES (?,?,?,?,?,?,?,?)");
+                                + "password_user, level_user, status_user, uuid) VALUES (?,?,?,?,?,?,?,?)",
+                                java.sql.Statement.RETURN_GENERATED_KEYS);
                         ps.setString(1, row_txtnama);
                         ps.setString(2, row_txtalamat);
                         ps.setString(3, row_txttelp);
@@ -810,6 +815,11 @@ public class Form_User extends javax.swing.JPanel {
                         ps.setString(7, row_txtstatus);
                         ps.setString(8, Ids.newUuid());
                         ps.executeUpdate();
+                        java.sql.ResultSet gk = ps.getGeneratedKeys();
+                        if (gk.next()) {
+                            config.SyncOutbox.enqueueUserById(gk.getInt(1));
+                        }
+                        gk.close();
                         ps.close();
                         JOptionPane.showMessageDialog(null, "User saved.");
                         btn_tambah.doClick();
@@ -833,6 +843,10 @@ public class Form_User extends javax.swing.JPanel {
                                 + "',username_user= '" + row_txtusername.replace("'", "''")
                                 + "',level_user= '" + row_txtlevel + "',status_user='"
                                 + row_txtstatus + "' WHERE user_Id = '" + row_id + "'");
+                        try {
+                            config.SyncOutbox.enqueueUserById(Integer.parseInt(row_id));
+                        } catch (NumberFormatException ignore) {
+                        }
                         JOptionPane.showMessageDialog(null, "User updated.");
                         btn_tambah.doClick();
                         GetData();

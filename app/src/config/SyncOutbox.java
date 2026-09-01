@@ -163,6 +163,49 @@ public final class SyncOutbox {
         }
     }
 
+    /** Columns the user payload needs; shared by the single and backfill enqueues. */
+    private static final String USER_SELECT =
+            "SELECT uuid, nama_user, alamat_user, telp_user, username_user, "
+            + "password_user, level_user, status_user, updated_at "
+            + "FROM users WHERE user_Id = ?";
+
+    private static String userPayload(ResultSet rs) throws Exception {
+        StringBuilder sb = new StringBuilder(320);
+        sb.append('{')
+                .append("\"uuid\":").append(SyncService.jsonString(rs.getString("uuid"))).append(',')
+                .append("\"namaUser\":").append(SyncService.jsonString(rs.getString("nama_user"))).append(',')
+                .append("\"alamatUser\":").append(jsonNullableString(rs.getString("alamat_user"))).append(',')
+                .append("\"telpUser\":").append(jsonNullableString(rs.getString("telp_user"))).append(',')
+                .append("\"usernameUser\":").append(SyncService.jsonString(rs.getString("username_user"))).append(',')
+                .append("\"passwordHash\":").append(SyncService.jsonString(rs.getString("password_user"))).append(',')
+                .append("\"levelUser\":").append(SyncService.jsonString(rs.getString("level_user"))).append(',')
+                .append("\"statusUser\":").append(SyncService.jsonString(rs.getString("status_user"))).append(',')
+                .append("\"updatedAt\":").append(SyncService.jsonString(formatTs(rs.getTimestamp("updated_at"))))
+                .append('}');
+        return sb.toString();
+    }
+
+    public static void enqueueUserById(int userId) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = Koneksi.getConnection();
+            ps = conn.prepareStatement(USER_SELECT);
+            ps.setInt(1, userId);
+            rs = ps.executeQuery();
+            if (!rs.next()) {
+                return;
+            }
+            SyncService.getInstance().enqueue("user", rs.getString("uuid"), userPayload(rs));
+        } catch (Exception e) {
+            System.out.println("sync outbox user failed: " + e);
+        } finally {
+            closeQuietly(rs);
+            closeQuietly(ps);
+        }
+    }
+
     public static void enqueuePurchaseById(int pembelianId) {
         Connection conn = null;
         PreparedStatement headerPs = null;
@@ -271,10 +314,43 @@ public final class SyncOutbox {
             count += enqueueAllPurchases(conn);
             count += enqueueAllExpenses(conn);
             count += enqueueAllSales(conn);
+            count += enqueueAllUsers(conn);
         } catch (Exception e) {
             System.out.println("full sync queue failed: " + e);
         }
         return count;
+    }
+
+    private static int enqueueAllUsers(Connection conn) throws Exception {
+        PreparedStatement ps = conn.prepareStatement("SELECT user_Id FROM users");
+        ResultSet rs = ps.executeQuery();
+        List<Integer> ids = new ArrayList<Integer>();
+        while (rs.next()) {
+            ids.add(Integer.valueOf(rs.getInt(1)));
+        }
+        rs.close();
+        ps.close();
+        for (Integer id : ids) {
+            Connection c2 = null;
+            PreparedStatement p2 = null;
+            ResultSet r2 = null;
+            try {
+                c2 = Koneksi.getConnection();
+                p2 = c2.prepareStatement(USER_SELECT);
+                p2.setInt(1, id.intValue());
+                r2 = p2.executeQuery();
+                if (!r2.next()) {
+                    continue;
+                }
+                SyncService.getInstance().enqueueIgnore("user", r2.getString("uuid"), userPayload(r2));
+            } catch (Exception e) {
+                System.out.println("full sync user failed: " + e);
+            } finally {
+                closeQuietly(r2);
+                closeQuietly(p2);
+            }
+        }
+        return ids.size();
     }
 
     private static int enqueueAllProducts(Connection conn) throws Exception {

@@ -318,6 +318,10 @@ public class Form_Akun extends javax.swing.JDialog {
                             ups.setString(2, u_id);
                             ups.executeUpdate();
                             ups.close();
+                            try {
+                                config.SyncOutbox.enqueueUserById(Integer.parseInt(u_id));
+                            } catch (NumberFormatException ignore) {
+                            }
                             JOptionPane.showMessageDialog(null, "Password changed successfully.");
                             txtpassword_lama.setText("");
                             txtpassword.setText("");
