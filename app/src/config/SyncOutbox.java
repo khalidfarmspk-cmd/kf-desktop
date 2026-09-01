@@ -206,6 +206,23 @@ public final class SyncOutbox {
         }
     }
 
+    /**
+     * Queue a user removal. Call before the local DELETE, while the uuid is still
+     * readable. Shares the outbox uuid key with enqueueUserById, so a create that
+     * has not shipped yet is replaced by the delete rather than racing it.
+     */
+    public static void enqueueUserDelete(String uuid) {
+        if (uuid == null || uuid.trim().isEmpty()) {
+            return;
+        }
+        String id = uuid.trim();
+        StringBuilder sb = new StringBuilder(64);
+        sb.append('{')
+                .append("\"uuid\":").append(SyncService.jsonString(id))
+                .append('}');
+        SyncService.getInstance().enqueue("user_delete", id, sb.toString());
+    }
+
     public static void enqueuePurchaseById(int pembelianId) {
         Connection conn = null;
         PreparedStatement headerPs = null;

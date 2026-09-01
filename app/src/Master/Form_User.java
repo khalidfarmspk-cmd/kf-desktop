@@ -870,8 +870,29 @@ public class Form_User extends javax.swing.JPanel {
             try {
                 String row_id = txt_id.getText();
                 Connection conn = Koneksi.getConnection();
+                // Read the uuid before the row goes, so the delete can be synced.
+                String uuid = null;
+                PreparedStatement find = conn.prepareStatement(
+                        "SELECT uuid FROM users WHERE user_Id = ?");
+                find.setString(1, row_id);
+                java.sql.ResultSet frs = find.executeQuery();
+                if (frs.next()) {
+                    uuid = frs.getString("uuid");
+                }
+                frs.close();
+                find.close();
+
+                if (uuid != null && config.SyncService.isLastActiveOwner(conn, uuid)) {
+                    JOptionPane.showMessageDialog(null,
+                            "This is the only active owner account. Deleting it would lock "
+                            + "everyone out of the web dashboard, so it cannot be removed.",
+                            "Could not delete", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
                 java.sql.Statement stm = conn.createStatement();
                 stm.executeUpdate("DELETE FROM users WHERE user_Id = '" + row_id + "'");
+                config.SyncOutbox.enqueueUserDelete(uuid);
                 JOptionPane.showMessageDialog(null, "User deleted.");
                 btn_tambah.doClick();
                 GetData();

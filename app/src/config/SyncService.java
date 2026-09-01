@@ -364,6 +364,9 @@ public final class SyncService {
         if ("user".equals(t)) {
             return "/api/sync/users";
         }
+        if ("user_delete".equals(t)) {
+            return "/api/sync/users/delete";
+        }
         return "/api/sync/" + t;
     }
 
@@ -658,6 +661,7 @@ public final class SyncService {
         applyPulledCustomers(conn, extractJsonArray(body, "customers"));
         applyPulledProducts(conn, extractJsonArray(body, "products"));
         applyPulledUsers(conn, extractJsonArray(body, "users"));
+        applyPulledUserDeletes(conn, extractJsonArray(body, "deletedUsers"));
         applyPulledSettings(conn, extractJsonArray(body, "settings"));
 
         if (serverTime != null && !serverTime.isEmpty()) {
@@ -1266,6 +1270,61 @@ public final class SyncService {
                         + " message=" + ex.getMessage());
                 ex.printStackTrace(System.err);
             }
+        }
+    }
+
+    /** Apply cloud user tombstones locally. Never drops the last active owner. */
+    private void applyPulledUserDeletes(Connection conn, String block) throws Exception {
+        if (block == null) {
+            return;
+        }
+        for (String obj : splitJsonObjects(block)) {
+            String uuid = extractJsonString(obj, "uuid");
+            if (uuid == null || uuid.trim().isEmpty()) {
+                continue;
+            }
+            uuid = uuid.trim();
+            PreparedStatement ps = null;
+            try {
+                if (isLastActiveOwner(conn, uuid)) {
+                    System.err.println("[sync-pull userDeletes] SKIP uuid=" + uuid
+                            + " (would remove the last active owner)");
+                    continue;
+                }
+                ps = conn.prepareStatement("DELETE FROM users WHERE uuid = ?");
+                ps.setString(1, uuid);
+                int n = ps.executeUpdate();
+                System.err.println("[sync-pull userDeletes] uuid=" + uuid
+                        + (n > 0 ? " DELETED" : " already absent"));
+            } catch (Exception ex) {
+                System.err.println("[sync-pull userDeletes] exception uuid=" + uuid
+                        + " message=" + ex.getMessage());
+            } finally {
+                closeQuietly(ps);
+            }
+        }
+    }
+
+    /** True when uuid names an active PEMILIK and no other active PEMILIK exists. */
+    public static boolean isLastActiveOwner(Connection conn, String uuid) throws SQLException {
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            ps = conn.prepareStatement(
+                    "SELECT (SELECT COUNT(*) FROM users WHERE uuid = ? "
+                    + "AND level_user = 'PEMILIK' AND status_user = 'AKTIF') AS is_owner, "
+                    + "(SELECT COUNT(*) FROM users WHERE uuid <> ? "
+                    + "AND level_user = 'PEMILIK' AND status_user = 'AKTIF') AS others");
+            ps.setString(1, uuid);
+            ps.setString(2, uuid);
+            rs = ps.executeQuery();
+            if (!rs.next()) {
+                return false;
+            }
+            return rs.getInt("is_owner") > 0 && rs.getInt("others") == 0;
+        } finally {
+            closeQuietly(rs);
+            closeQuietly(ps);
         }
     }
 
