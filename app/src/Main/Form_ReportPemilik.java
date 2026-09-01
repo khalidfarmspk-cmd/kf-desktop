@@ -594,10 +594,18 @@ public class Form_ReportPemilik extends javax.swing.JPanel {
             Calendar end = Calendar.getInstance();
             end.setTime(txt_tanggaldetail.getDate());
             HashMap<String, Integer> map = new HashMap<>();
+            // Same revenue definition as refreshKpis: line subtotals, non-voided,
+            // scale items excluded. Vegetables have their own report view.
             ps = Koneksi.getConnection().prepareStatement(
-                    "SELECT DATE(tanggal_penjualan) AS d, COALESCE(SUM(total_pembayaran),0) AS v "
-                    + "FROM laporan_penjualan WHERE tanggal_penjualan BETWEEN '" + from + "' AND '"
-                    + to + " 23:59:59' GROUP BY DATE(tanggal_penjualan)");
+                    "SELECT DATE(j.tanggal_penjualan) AS d, COALESCE(SUM(n.Subtotal),0) AS v "
+                    + "FROM nota_penjualan n "
+                    + "JOIN penjualan j ON j.penjualan_Id = n.penjualan_Id "
+                    + "JOIN produk p ON p.kode_produk = n.kode_produk "
+                    + "WHERE j.tanggal_penjualan BETWEEN ? AND ? "
+                    + "AND j.voided = 0 AND p.is_scale = 0 "
+                    + "GROUP BY DATE(j.tanggal_penjualan)");
+            ps.setString(1, from);
+            ps.setString(2, to + " 23:59:59");
             rs = ps.executeQuery();
             while (rs.next()) {
                 map.put(rs.getString("d"), rs.getInt("v"));
@@ -626,19 +634,23 @@ public class Form_ReportPemilik extends javax.swing.JPanel {
             }
         };
         try {
+            // Scale items included here on purpose, so weighed goods rank
+            // alongside the rest. Quantity is decimal for those (e.g. 0.205 kg).
             ps = Koneksi.getConnection().prepareStatement(
                     "SELECT n.nama_produk, SUM(n.jumlah) AS qty, SUM(n.Subtotal) AS rev "
                     + "FROM nota_penjualan n "
                     + "JOIN penjualan j ON j.penjualan_Id = n.penjualan_Id "
                     + "JOIN produk p ON p.kode_produk = n.kode_produk "
-                    + "WHERE j.tanggal_penjualan BETWEEN '" + from + "' AND '" + to + " 23:59:59' "
-                    + "AND j.voided = 0 AND p.is_scale = 0 "
+                    + "WHERE j.tanggal_penjualan BETWEEN ? AND ? "
+                    + "AND j.voided = 0 "
                     + "GROUP BY n.nama_produk ORDER BY rev DESC LIMIT 8");
+            ps.setString(1, from);
+            ps.setString(2, to + " 23:59:59");
             rs = ps.executeQuery();
             while (rs.next()) {
                 model.addRow(new Object[]{
                     rs.getString(1),
-                    rs.getInt(2),
+                    QuantityUtil.format(rs.getBigDecimal(2), true),
                     money(rs.getInt(3))
                 });
             }
