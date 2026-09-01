@@ -1701,9 +1701,19 @@ public final class SyncService {
     }
 
     /** One-shot pull for console debugging (no Swing). */
+    /**
+     * Debug one-shot. No args pulls; "push" drains the outbox once. Useful because
+     * the app launches under javaw, which discards the [sync-push] diagnostics.
+     */
     public static void main(String[] args) {
-        System.err.println("[sync-pull] debug one-shot starting…");
-        getInstance().runPullCycle();
-        System.err.println("[sync-pull] debug one-shot done.");
+        boolean push = args != null && args.length > 0 && "push".equalsIgnoreCase(args[0]);
+        String leg = push ? "sync-push" : "sync-pull";
+        System.err.println("[" + leg + "] debug one-shot starting…");
+        if (push) {
+            getInstance().runPushCycle();
+        } else {
+            getInstance().runPullCycle();
+        }
+        System.err.println("[" + leg + "] debug one-shot done.");
     }
 }
