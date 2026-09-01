@@ -812,9 +812,11 @@ public class Form_DasbordPemilik extends javax.swing.JPanel {
             laporan.addColumn("CASHIER");
             laporan.addColumn("TOTAL");
 
+            SimpleDateFormat clock = new SimpleDateFormat("HH:mm");
             while (rs.next()) {
+                java.sql.Timestamp at = rs.getTimestamp("waktu_penjualan");
                 laporan.addRow(new Object[]{
-                    "—",
+                    at == null ? "—" : clock.format(at),
                     "TX-" + String.format("%04d", rs.getInt("penjualan_Id")),
                     rs.getString("nama_user"),
                     formatRp(rs.getString("total_pembayaran"))
@@ -856,10 +858,11 @@ public class Form_DasbordPemilik extends javax.swing.JPanel {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
             String day = dateFormat.format(tanggal);
             ps = Koneksi.getConnection().prepareStatement(
-                    "SELECT HOUR(tanggal_penjualan) AS jam, COUNT(*) AS n "
-                    + "FROM penjualan WHERE DATE(tanggal_penjualan) = '" + day + "' "
-                    + "AND voided = 0 "
-                    + "GROUP BY HOUR(tanggal_penjualan)");
+                    "SELECT HOUR(waktu_penjualan) AS jam, COUNT(*) AS n "
+                    + "FROM penjualan WHERE tanggal_penjualan = ? "
+                    + "AND voided = 0 AND waktu_penjualan IS NOT NULL "
+                    + "GROUP BY HOUR(waktu_penjualan)");
+            ps.setString(1, day);
             rs = ps.executeQuery();
             while (rs.next()) {
                 int h = rs.getInt("jam");

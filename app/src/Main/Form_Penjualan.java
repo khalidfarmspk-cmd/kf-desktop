@@ -2309,10 +2309,13 @@ public class Form_Penjualan extends javax.swing.JPanel {
             conn.setAutoCommit(false);
 
             PreparedStatement headerPs = conn.prepareStatement(
+                    // waktu_penjualan is NOW() rather than a parameter: tanggal_penjualan
+                    // is DATE-only, so this is what carries the clock time for reporting.
                     "INSERT INTO `penjualan`(`penjualan_Id`, `tanggal_penjualan`, `total_Pembayaran`, "
                     + "`uang_diterima`, `uang_kembalian`, `user_Id`, `uuid`, "
-                    + "`pelanggan_Id`, `metode_Id`, `nama_kurir`, `subtotal_kotor`, `diskon`) "
-                    + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)");
+                    + "`pelanggan_Id`, `metode_Id`, `nama_kurir`, `subtotal_kotor`, `diskon`, "
+                    + "`waktu_penjualan`) "
+                    + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,NOW())");
             try {
                 headerPs.setInt(1, idTransaksi);
                 headerPs.setString(2, tanggal);
