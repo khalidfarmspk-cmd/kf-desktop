@@ -248,7 +248,12 @@ public class Form_ReportPemilik extends javax.swing.JPanel {
                 }
                 tbl_laporan.setRowSelectionInterval(view, view);
                 tbl_laporan.scrollRectToVisible(tbl_laporan.getCellRect(view, 0, true));
-                tbl_laporan.requestFocusInWindow();
+                // Keep the caret in the search box. Focusing the table would send
+                // the next scan's trailing Enter to JTable's selectNextRow action,
+                // walking the selection down instead of re-finding the ticket.
+                if (txt_txSearch != null) {
+                    txt_txSearch.requestFocusInWindow();
+                }
                 return true;
             }
         }
