@@ -63,6 +63,30 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `TotalPendapatan` (IN `tanggalPenjua
     WHERE DATE(tanggal_penjualan) = tanggalPenjualan;
 END$$
 
+CREATE DEFINER=`root`@`localhost` PROCEDURE `QuantityPenjualan` (IN `tanggalPenjualan` DATE, OUT `QuantityPenjualan` INT)   BEGIN
+    SELECT COUNT(*) INTO QuantityPenjualan
+    FROM penjualan
+    WHERE DATE(tanggal_penjualan) = tanggalPenjualan;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `ProductKurangDari` (IN `input_stok` INT)   BEGIN
+    SELECT *
+    FROM produk
+    WHERE stok_produk < input_stok;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `TopProduct` (IN `input_count` INT)   BEGIN
+    SELECT p.*
+    FROM produk p
+    INNER JOIN (
+        SELECT kode_produk
+        FROM nota_penjualan
+        GROUP BY kode_produk
+        ORDER BY SUM(jumlah) DESC
+        LIMIT input_count
+    ) AS top ON p.kode_produk = top.kode_produk;
+END$$
+
 DELIMITER ;
 
 -- --------------------------------------------------------

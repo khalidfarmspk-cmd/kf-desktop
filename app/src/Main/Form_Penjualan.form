@@ -101,11 +101,11 @@
                                       <Group type="102" alignment="0" attributes="0">
                                           <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
                                           <EmptySpace max="-2" attributes="0"/>
-                                          <Component id="txt_idKasir" min="-2" pref="107" max="-2" attributes="0"/>
+                                          <Component id="txt_idCashier" min="-2" pref="107" max="-2" attributes="0"/>
                                           <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
                                           <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
                                           <EmptySpace max="-2" attributes="0"/>
-                                          <Component id="txt_namaKasir" min="-2" pref="107" max="-2" attributes="0"/>
+                                          <Component id="txt_namaCashier" min="-2" pref="107" max="-2" attributes="0"/>
                                       </Group>
                                   </Group>
                                   <Group type="102" alignment="1" attributes="0">
@@ -177,8 +177,8 @@
                           <Group type="103" groupAlignment="3" attributes="0">
                               <Component id="jLabel3" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="jLabel2" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="txt_namaKasir" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="txt_idKasir" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="txt_namaCashier" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="txt_idCashier" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="3" attributes="0">
@@ -292,21 +292,21 @@
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel2">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Nama :"/>
+            <Property name="text" type="java.lang.String" value="Name :"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel3">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Id Kasir :"/>
+            <Property name="text" type="java.lang.String" value="Cashier ID :"/>
           </Properties>
         </Component>
-        <Component class="javax.swing.JTextField" name="txt_namaKasir">
+        <Component class="javax.swing.JTextField" name="txt_namaCashier">
         </Component>
-        <Component class="javax.swing.JTextField" name="txt_idKasir">
+        <Component class="javax.swing.JTextField" name="txt_idCashier">
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel4">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Cari Barang :"/>
+            <Property name="text" type="java.lang.String" value="Search Product :"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JTextField" name="txt_cariBarang">
@@ -348,28 +348,28 @@
         </Container>
         <Component class="javax.swing.JLabel" name="jLabel5">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Tanggal Transaksi :"/>
+            <Property name="text" type="java.lang.String" value="Transaction Date :"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JTextField" name="txt_kodeTransaksi">
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel6">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Kode Transaksi :"/>
+            <Property name="text" type="java.lang.String" value="Transaction Code :"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JTextField" name="txt_namaBarang">
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel7">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Nama Barang :"/>
+            <Property name="text" type="java.lang.String" value="Product Name :"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JTextField" name="txt_tanggalTransaksi">
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel8">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Kategori :"/>
+            <Property name="text" type="java.lang.String" value="Category :"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JTextField" name="txt_merek">
@@ -378,19 +378,19 @@
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel9">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Kode Barang :"/>
+            <Property name="text" type="java.lang.String" value="Product Code :"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JTextField" name="txt_hargaJual">
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel10">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Harga Jual :"/>
+            <Property name="text" type="java.lang.String" value="Selling Price :"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel11">
           <Properties>
-            <Property name="text" type="java.lang.String" value="merek :"/>
+            <Property name="text" type="java.lang.String" value="brand :"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JTextField" name="txt_kategori">
@@ -403,7 +403,7 @@
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel12">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Jumlah Barang :"/>
+            <Property name="text" type="java.lang.String" value="Quantity :"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JButton" name="btn_tambah">
@@ -411,7 +411,7 @@
             <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
               <Color blue="33" green="cc" red="0" type="rgb"/>
             </Property>
-            <Property name="text" type="java.lang.String" value="Tambah"/>
+            <Property name="text" type="java.lang.String" value="Add"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_tambahActionPerformed"/>
@@ -428,10 +428,10 @@
               <Properties>
                 <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
                   <Table columnCount="5" rowCount="0">
-                    <Column editable="true" title="Kode Barang" type="java.lang.Object"/>
-                    <Column editable="true" title="Nama Barang" type="java.lang.Object"/>
-                    <Column editable="true" title="Jumlah" type="java.lang.Object"/>
-                    <Column editable="true" title="Harga Jual" type="java.lang.Object"/>
+                    <Column editable="true" title="Product Code" type="java.lang.Object"/>
+                    <Column editable="true" title="Product Name" type="java.lang.Object"/>
+                    <Column editable="true" title="Quantity" type="java.lang.Object"/>
+                    <Column editable="true" title="Selling Price" type="java.lang.Object"/>
                     <Column editable="true" title="Subtotal" type="java.lang.Object"/>
                   </Table>
                 </Property>
@@ -489,7 +489,7 @@
             <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
               <Color blue="ff" green="ff" red="ff" type="rgb"/>
             </Property>
-            <Property name="text" type="java.lang.String" value="Batal"/>
+            <Property name="text" type="java.lang.String" value="Cancel"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_batalActionPerformed"/>
@@ -497,17 +497,17 @@
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel14">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Uang Pembayaran :"/>
+            <Property name="text" type="java.lang.String" value="Amount Paid :"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel15">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Total Harga :"/>
+            <Property name="text" type="java.lang.String" value="Total Price :"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel16">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Kembalian :"/>
+            <Property name="text" type="java.lang.String" value="Change :"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JTextField" name="txt_totalPembayaran">
@@ -534,7 +534,7 @@
             <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
               <Color blue="ff" green="ff" red="ff" type="rgb"/>
             </Property>
-            <Property name="text" type="java.lang.String" value="Hapus"/>
+            <Property name="text" type="java.lang.String" value="Delete"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_hapusActionPerformed"/>
@@ -545,7 +545,7 @@
             <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
               <Color blue="0" green="cc" red="0" type="rgb"/>
             </Property>
-            <Property name="text" type="java.lang.String" value="Perbarui"/>
+            <Property name="text" type="java.lang.String" value="Update"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_perbaruiActionPerformed"/>
@@ -556,7 +556,7 @@
             <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
               <Color blue="33" green="cc" red="0" type="rgb"/>
             </Property>
-            <Property name="text" type="java.lang.String" value="Simpan"/>
+            <Property name="text" type="java.lang.String" value="Save"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_simpanActionPerformed"/>
@@ -567,7 +567,7 @@
             <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
               <Color blue="33" green="cc" red="0" type="rgb"/>
             </Property>
-            <Property name="text" type="java.lang.String" value="Segarkan"/>
+            <Property name="text" type="java.lang.String" value="Refresh"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_segarkanActionPerformed"/>

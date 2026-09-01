@@ -6,15 +6,14 @@
 package Main;
 
 import config.Koneksi;
-import dao.Encrypt;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import org.mindrot.jbcrypt.BCrypt;
 
 /**
  *
@@ -28,12 +27,21 @@ public class Form_Akun extends javax.swing.JDialog {
 
     public Form_Akun() {
         initComponents();
+        Main.PageUI.paintPage((javax.swing.JComponent) getContentPane());
+        Main.PageUI.restyleTree(getContentPane());
+        Main.PageUI.stylePrimaryButton(btnsave_password);
 
         lblid.setVisible(false);
         lblid.setText(": " + user.getId());
         lblnama.setText(": " + user.getNama());
         lblusername.setText(": " + user.getUsername());
-        lbllevel.setText(": " + user.getJenisUser());
+        String level = user.getJenisUser();
+        if ("PEMILIK".equals(level)) {
+            level = "Owner";
+        } else if ("KARYAWAN".equals(level)) {
+            level = "Employee";
+        }
+        lbllevel.setText(": " + level);
     }
 
     /**
@@ -64,15 +72,17 @@ public class Form_Akun extends javax.swing.JDialog {
         jLabel10 = new javax.swing.JLabel();
         txtpassword_lama = new javax.swing.JPasswordField();
         txtpassword = new javax.swing.JPasswordField();
+        chk_showPassword = new javax.swing.JCheckBox("Show passwords");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setBackground(new java.awt.Color(210, 218, 255));
+        setBackground(Main.UITheme.PAGE_BG);
 
-        jPanel1.setBackground(new java.awt.Color(43, 42, 76));
+        jPanel1.setBackground(Main.UITheme.PAGE_BG);
+        jPanel1.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, Main.UITheme.GRID_LINE));
 
-        jLabel9.setFont(new java.awt.Font("Lucida Grande", 0, 22)); // NOI18N
-        jLabel9.setForeground(new java.awt.Color(182, 229, 251));
-        jLabel9.setText("Akun Login");
+        jLabel9.setFont(Main.UITheme.FONT_HEADING.deriveFont(28f));
+        jLabel9.setForeground(Main.PageUI.INK);
+        jLabel9.setText("Login Account");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -91,47 +101,74 @@ public class Form_Akun extends javax.swing.JDialog {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        jLabel1.setFont(new java.awt.Font("Lucida Grande", 0, 14)); // NOI18N
-        jLabel1.setText("Login Sebagai:");
+        jLabel1.setFont(Main.UITheme.FONT_BOLD.deriveFont(14f));
+        jLabel1.setForeground(Main.UITheme.TEXT_SECONDARY);
+        jLabel1.setText("Logged in as:");
 
-        jLabel3.setFont(new java.awt.Font("Lucida Grande", 0, 14)); // NOI18N
+        jLabel3.setFont(Main.UITheme.FONT_REGULAR.deriveFont(14f));
+        jLabel3.setForeground(Main.UITheme.TEXT_SECONDARY);
         jLabel3.setText("Username");
 
-        jLabel4.setFont(new java.awt.Font("Lucida Grande", 0, 14)); // NOI18N
-        jLabel4.setText("Nama");
+        jLabel4.setFont(Main.UITheme.FONT_REGULAR.deriveFont(14f));
+        jLabel4.setForeground(Main.UITheme.TEXT_SECONDARY);
+        jLabel4.setText("Name");
 
-        jLabel5.setFont(new java.awt.Font("Lucida Grande", 0, 14)); // NOI18N
+        jLabel5.setFont(Main.UITheme.FONT_REGULAR.deriveFont(14f));
+        jLabel5.setForeground(Main.UITheme.TEXT_SECONDARY);
         jLabel5.setText("level");
 
-        lblid.setFont(new java.awt.Font("Lucida Grande", 0, 14)); // NOI18N
+        lblid.setFont(Main.UITheme.FONT_REGULAR.deriveFont(14f));
         lblid.setText("lblid");
 
-        lblnama.setFont(new java.awt.Font("Lucida Grande", 1, 14)); // NOI18N
+        lblnama.setFont(Main.UITheme.FONT_BOLD.deriveFont(14f));
+        lblnama.setForeground(Main.UITheme.TEXT_PRIMARY);
         lblnama.setText("lblnama");
 
-        lblusername.setFont(new java.awt.Font("Lucida Grande", 0, 14)); // NOI18N
+        lblusername.setFont(Main.UITheme.FONT_REGULAR.deriveFont(14f));
+        lblusername.setForeground(Main.UITheme.TEXT_PRIMARY);
         lblusername.setText("lblusername");
 
-        lbllevel.setFont(new java.awt.Font("Lucida Grande", 0, 14)); // NOI18N
+        lbllevel.setFont(Main.UITheme.FONT_REGULAR.deriveFont(14f));
+        lbllevel.setForeground(Main.UITheme.TEXT_PRIMARY);
         lbllevel.setText("lbllevel");
 
-        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
+        jPanel2.setBackground(Main.UITheme.SURFACE);
+        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder(
+            javax.swing.BorderFactory.createLineBorder(Main.UITheme.GRID_LINE), "",
+            javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION,
+            javax.swing.border.TitledBorder.DEFAULT_POSITION, Main.UITheme.FONT_REGULAR, Main.UITheme.TEXT_SECONDARY));
 
-        btnsave_password.setBackground(new java.awt.Color(170, 43, 29));
-        btnsave_password.setText("Ubah Password");
+        btnsave_password.setBackground(Main.UITheme.ACCENT);
+        btnsave_password.setForeground(java.awt.Color.WHITE);
+        btnsave_password.setFont(Main.UITheme.FONT_BOLD);
+        btnsave_password.setFocusPainted(false);
+        btnsave_password.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnsave_password.setText("Change Password");
         btnsave_password.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnsave_passwordActionPerformed(evt);
             }
         });
 
-        jLabel6.setText("Ubah Password :");
+        jLabel6.setText("Change Password :");
 
-        jLabel7.setText("Password Lama");
+        jLabel7.setText("Current Password");
 
-        jLabel8.setText("Password Baru");
+        jLabel8.setText("New Password");
 
-        jLabel10.setText("Ulangi Password");
+        jLabel10.setText("Confirm Password");
+
+        chk_showPassword.setOpaque(false);
+        chk_showPassword.setFont(Main.UITheme.FONT_REGULAR.deriveFont(12f));
+        chk_showPassword.setForeground(Main.UITheme.TEXT_SECONDARY);
+        chk_showPassword.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        chk_showPassword.setFocusPainted(false);
+        chk_showPassword.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                Main.PageUI.setPasswordVisible(chk_showPassword.isSelected(),
+                        txtpassword_lama, txtpassword, txtcpassword);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -147,6 +184,7 @@ public class Form_Akun extends javax.swing.JDialog {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btnsave_password)
+                    .addComponent(chk_showPassword)
                     .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                         .addComponent(txtpassword_lama)
                         .addComponent(txtpassword)
@@ -170,6 +208,8 @@ public class Form_Akun extends javax.swing.JDialog {
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel10)
                     .addComponent(txtcpassword, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(chk_showPassword)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btnsave_password)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -240,14 +280,14 @@ public class Form_Akun extends javax.swing.JDialog {
 
     private void btnsave_passwordActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnsave_passwordActionPerformed
         if (txtpassword_lama.getPassword().length == 0 || txtpassword.getPassword().length == 0 || txtcpassword.getPassword().length == 0) {
-            JOptionPane.showMessageDialog(null, "Terdapat inputan yang kosong.");
+            JOptionPane.showMessageDialog(null, "Please fill in all required fields.");
         } else {
             String password_lama = new String(txtpassword_lama.getPassword());
             String row_txtpassword = new String(txtpassword.getPassword());
             String row_txtcpassword = new String(txtcpassword.getPassword());
 
             if (!row_txtpassword.equals(row_txtcpassword)) {
-                JOptionPane.showMessageDialog(null, "Ulangi password berbeda dengan inputan password baru.", "Gagal Disimpan", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Confirm password does not match the new password.", "Save Failed", JOptionPane.ERROR_MESSAGE);
                 txtcpassword.setText("");
                 txtcpassword.requestFocus();
             } else {
@@ -255,40 +295,43 @@ public class Form_Akun extends javax.swing.JDialog {
 
                 try {
                     Connection conn = Koneksi.getConnection();
-                    String query = "SELECT * FROM users WHERE user_Id = ?";
-
-                    PreparedStatement pstmt = conn.prepareStatement(query);
+                    PreparedStatement pstmt = conn.prepareStatement(
+                            "SELECT password_user FROM users WHERE user_Id = ?");
                     pstmt.setString(1, u_id);
-
                     ResultSet rsLogin = pstmt.executeQuery();
 
                     if (rsLogin.next()) {
-                        String cekUser = "SELECT users.user_Id, users.password_user "
-                                + "FROM users WHERE users.password_user = ?;";
-
-                        ps = Koneksi.getConnection().prepareStatement(cekUser);
-                        ps.setString(1, password_lama);
-                        rs = ps.executeQuery();
-                        if (rs.next()) {
-                            try {
-                                Connection con = Koneksi.getConnection();
-                                java.sql.Statement stm = con.createStatement();
-                                stm.executeUpdate("UPDATE users SET password_user='" + row_txtpassword + "' WHERE user_Id = '" + u_id + "'");
-                                JOptionPane.showMessageDialog(null, "Berhasil mengubah password.");
-                                txtpassword_lama.setText("");
-                                txtpassword.setText("");
-                                txtcpassword.setText("");
-                            } catch (SQLException e) {
-                                JOptionPane.showMessageDialog(null, "Error " + e);
-                            }
+                        String stored = rsLogin.getString("password_user");
+                        boolean currentOk;
+                        if (stored != null && stored.startsWith("$2")) {
+                            currentOk = BCrypt.checkpw(password_lama, stored);
                         } else {
-                            JOptionPane.showMessageDialog(null, "Password lama Anda salah.");
+                            // TEMPORARY: allow plaintext current password until upgraded at login.
+                            currentOk = stored != null && stored.equals(password_lama);
+                        }
+
+                        if (currentOk) {
+                            String hash = BCrypt.hashpw(row_txtpassword, BCrypt.gensalt(10));
+                            PreparedStatement ups = conn.prepareStatement(
+                                    "UPDATE users SET password_user = ? WHERE user_Id = ?");
+                            ups.setString(1, hash);
+                            ups.setString(2, u_id);
+                            ups.executeUpdate();
+                            ups.close();
+                            JOptionPane.showMessageDialog(null, "Password changed successfully.");
+                            txtpassword_lama.setText("");
+                            txtpassword.setText("");
+                            txtcpassword.setText("");
+                        } else {
+                            JOptionPane.showMessageDialog(null, "Current password is incorrect.");
                             txtpassword_lama.setText("");
                             txtpassword_lama.requestFocus();
                         }
                     } else {
-                        JOptionPane.showMessageDialog(null, "Id tidak ditemukan.");
+                        JOptionPane.showMessageDialog(null, "ID not found.");
                     }
+                    rsLogin.close();
+                    pstmt.close();
                 } catch (SQLException e) {
                     JOptionPane.showMessageDialog(null, "Error " + e);
                 } catch (ClassNotFoundException ex) {
@@ -303,28 +346,9 @@ public class Form_Akun extends javax.swing.JDialog {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
+        /* Modern flat look and feel (FlatLaf) — replaces the old Nimbus LaF. */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Form_Akun.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Form_Akun.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Form_Akun.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Form_Akun.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
+        Main.UITheme.apply();
         //</editor-fold>
 
         /* Create and display the dialog */
@@ -344,6 +368,7 @@ public class Form_Akun extends javax.swing.JDialog {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnsave_password;
+    private javax.swing.JCheckBox chk_showPassword;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel3;

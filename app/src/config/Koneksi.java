@@ -22,7 +22,7 @@ public class Koneksi {
     public static Connection getConnection()throws ClassNotFoundException {
         if (connection == null) {
             try {
-                String url = "jdbc:mysql://localhost/pointofsale";
+                String url = "jdbc:mysql://localhost:3307/pointofsale";
                 String user = "root";
                 String pass = "";
                 DriverManager.registerDriver(new com.mysql.jdbc.Driver());

@@ -25,6 +25,18 @@ public class Form_DasbordKaryawan extends javax.swing.JPanel {
 
     public Form_DasbordKaryawan() {
         initComponents();
+        Main.PageUI.paintPage(this);
+        Main.PageUI.restyleTree(this);
+        Main.PageUI.stylePrimaryButton(btn_caristok);
+        Main.PageUI.stylePrimaryButton(btn_cariterlaris);
+        Main.PageUI.styleTable(tb_stok);
+        Main.PageUI.styleTable(tb_favorit);
+        Main.PageUI.styleTable(tb_laporan);
+        Main.PageUI.styleScroll(jScrollPane1);
+        Main.PageUI.styleScroll(jScrollPane2);
+        Main.PageUI.styleScroll(jScrollPane3);
+        Main.PageUI.styleField(txt_stok);
+        Main.PageUI.styleField(txt_terlaris);
 
         p_notifikasi.hide();
         totalPenjualan();
@@ -75,27 +87,32 @@ public class Form_DasbordKaryawan extends javax.swing.JPanel {
         jLabel12 = new javax.swing.JLabel();
         lb_pendapatan = new javax.swing.JLabel();
 
-        totalBarang.setFont(new java.awt.Font("Bebas Neue", 0, 24)); // NOI18N
+        totalBarang.setFont(Main.UITheme.FONT_HEADING.deriveFont(24f));
         totalBarang.setForeground(new java.awt.Color(255, 255, 255));
         totalBarang.setText("0");
         totalBarang.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
 
         jLabel7.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel7.setText("Banyak Barang");
+        jLabel7.setText("Product count");
 
         setLayout(new java.awt.CardLayout());
 
-        jPanel1.setBackground(new java.awt.Color(210, 218, 255));
+        jPanel1.setBackground(Main.UITheme.PAGE_BG);
 
-        jLabel1.setFont(new java.awt.Font("SansSerif", 1, 24)); // NOI18N
-        jLabel1.setText("Dasboard");
+        jLabel1.setFont(Main.UITheme.FONT_HEADING.deriveFont(28f));
+        jLabel1.setForeground(Main.PageUI.INK);
+        jLabel1.setText("Dashboard");
 
-        jPanel2.setBackground(new java.awt.Color(245, 235, 224));
+        jPanel2.setBackground(Main.UITheme.SURFACE);
+        jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(Main.UITheme.GRID_LINE));
 
+        jLabel8.setForeground(Main.UITheme.TEXT_CAPTION);
+        jLabel8.setFont(Main.UITheme.FONT_CAPTION);
         jLabel8.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel8.setText("Penjualan Hari Ini");
+        jLabel8.setText("Sales today");
 
-        lb_totalPenjualan.setFont(new java.awt.Font("Bebas Neue", 0, 24)); // NOI18N
+        lb_totalPenjualan.setFont(Main.UITheme.FONT_KPI_VALUE);
+        lb_totalPenjualan.setForeground(Main.PageUI.INK);
         lb_totalPenjualan.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         lb_totalPenjualan.setText("0");
         lb_totalPenjualan.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
@@ -117,12 +134,16 @@ public class Form_DasbordKaryawan extends javax.swing.JPanel {
                 .addGap(29, 29, 29))
         );
 
-        jPanel4.setBackground(new java.awt.Color(245, 235, 224));
+        jPanel4.setBackground(Main.UITheme.SURFACE);
+        jPanel4.setBorder(javax.swing.BorderFactory.createLineBorder(Main.UITheme.GRID_LINE));
 
+        jLabel10.setForeground(Main.UITheme.TEXT_CAPTION);
+        jLabel10.setFont(Main.UITheme.FONT_CAPTION);
         jLabel10.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel10.setText("Produk Dapat Dijual");
+        jLabel10.setText("Sellable products");
 
-        lb_totalProduk.setFont(new java.awt.Font("Bebas Neue", 0, 24)); // NOI18N
+        lb_totalProduk.setFont(Main.UITheme.FONT_KPI_VALUE);
+        lb_totalProduk.setForeground(Main.UITheme.ACCENT);
         lb_totalProduk.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         lb_totalProduk.setText("0");
         lb_totalProduk.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
@@ -144,19 +165,20 @@ public class Form_DasbordKaryawan extends javax.swing.JPanel {
                 .addGap(30, 30, 30))
         );
 
-        p_notifikasi.setBackground(new java.awt.Color(255, 0, 0));
-        p_notifikasi.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(255, 0, 0)));
+        p_notifikasi.setBackground(Main.UITheme.DANGER);
+        p_notifikasi.setBorder(javax.swing.BorderFactory.createLineBorder(Main.UITheme.DANGER));
         p_notifikasi.setPreferredSize(new java.awt.Dimension(900, 56));
+        p_notifikasi.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         p_notifikasi.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 p_notifikasiMouseClicked(evt);
             }
         });
 
-        jLabel3.setFont(new java.awt.Font("SansSerif", 1, 14)); // NOI18N
+        jLabel3.setFont(Main.UITheme.FONT_BOLD.deriveFont(14f));
         jLabel3.setForeground(new java.awt.Color(255, 255, 255));
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel3.setText("Peringatan!! terdapat stok produk kurang dari 3 buah");
+        jLabel3.setText("Warning: products with stock below 3");
 
         javax.swing.GroupLayout p_notifikasiLayout = new javax.swing.GroupLayout(p_notifikasi);
         p_notifikasi.setLayout(p_notifikasiLayout);
@@ -174,9 +196,14 @@ public class Form_DasbordKaryawan extends javax.swing.JPanel {
         txt_stok.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         txt_stok.setText("3");
 
-        jLabel4.setText("stok produk kurang dari :");
+        jLabel4.setForeground(Main.UITheme.TEXT_SECONDARY);
+        jLabel4.setFont(Main.UITheme.FONT_REGULAR);
+        jLabel4.setText("Stock below:");
 
         btn_caristok.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Main/image/search.png"))); // NOI18N
+        btn_caristok.setBackground(Main.UITheme.ACCENT);
+        btn_caristok.setFocusPainted(false);
+        btn_caristok.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         btn_caristok.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btn_caristokActionPerformed(evt);
@@ -193,7 +220,9 @@ public class Form_DasbordKaryawan extends javax.swing.JPanel {
         ));
         jScrollPane1.setViewportView(tb_stok);
 
-        jLabel5.setText("produk favorit");
+        jLabel5.setForeground(Main.UITheme.TEXT_PRIMARY);
+        jLabel5.setFont(Main.UITheme.FONT_BOLD.deriveFont(13f));
+        jLabel5.setText("Top products");
 
         tb_favorit.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -205,7 +234,9 @@ public class Form_DasbordKaryawan extends javax.swing.JPanel {
         ));
         jScrollPane2.setViewportView(tb_favorit);
 
-        jLabel6.setText("Penjualan hari ini");
+        jLabel6.setForeground(Main.UITheme.TEXT_PRIMARY);
+        jLabel6.setFont(Main.UITheme.FONT_BOLD.deriveFont(13f));
+        jLabel6.setText("Sales today");
 
         tb_laporan.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -221,22 +252,29 @@ public class Form_DasbordKaryawan extends javax.swing.JPanel {
         txt_terlaris.setText("5");
 
         btn_cariterlaris.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Main/image/search.png"))); // NOI18N
+        btn_cariterlaris.setBackground(Main.UITheme.ACCENT);
+        btn_cariterlaris.setFocusPainted(false);
+        btn_cariterlaris.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         btn_cariterlaris.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btn_cariterlarisActionPerformed(evt);
             }
         });
 
-        jLabel11.setText("baris :");
+        jLabel11.setForeground(Main.UITheme.TEXT_SECONDARY);
+        jLabel11.setFont(Main.UITheme.FONT_REGULAR);
+        jLabel11.setText("Rows:");
 
-        jPanel5.setBackground(new java.awt.Color(0, 255, 51));
+        jPanel5.setBackground(Main.UITheme.ACCENT);
         jPanel5.setMaximumSize(new java.awt.Dimension(899, 87));
         jPanel5.setMinimumSize(new java.awt.Dimension(899, 87));
 
-        jLabel12.setFont(new java.awt.Font("SansSerif", 0, 16)); // NOI18N
-        jLabel12.setText("Total Pendapatan Hari Ini :  Rp");
+        jLabel12.setFont(Main.UITheme.FONT_CAPTION);
+        jLabel12.setForeground(java.awt.Color.WHITE);
+        jLabel12.setText("Revenue today:  " + Main.UITheme.CURRENCY);
 
-        lb_pendapatan.setFont(new java.awt.Font("SansSerif", 1, 16)); // NOI18N
+        lb_pendapatan.setFont(Main.UITheme.FONT_KPI_VALUE.deriveFont(28f));
+        lb_pendapatan.setForeground(java.awt.Color.WHITE);
         lb_pendapatan.setText("0");
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
@@ -394,21 +432,21 @@ public class Form_DasbordKaryawan extends javax.swing.JPanel {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
             String tanggalPenjualan = dateFormat.format(tanggal);
 
-            String jumlahPenjualan = "CALL JumlahPenjualan('" + tanggalPenjualan + "', @JumlahPenjualan);";
-            String selectJumlahPenjualan = "SELECT @JumlahPenjualan;";
+            String jumlahPenjualan = "CALL QuantityPenjualan('" + tanggalPenjualan + "', @QuantityPenjualan);";
+            String selectJumlahPenjualan = "SELECT @QuantityPenjualan;";
 
-            // Eksekusi perintah CALL JumlahPenjualan
+            // Eksekusi perintah CALL QuantityPenjualan
             ps = Koneksi.getConnection().prepareStatement(jumlahPenjualan);
             ps.execute();
 
-            // Eksekusi perintah SELECT untuk mengambil nilai @JumlahPenjualan
+            // Eksekusi perintah SELECT untuk mengambil nilai @QuantityPenjualan
             ps = Koneksi.getConnection().prepareStatement(selectJumlahPenjualan);
             rs = ps.executeQuery();
             if (rs.next()) {
                 lb_totalPenjualan.setText(Integer.toString(rs.getInt(1)));
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Periksa kembali " + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Please check again: " + e.getMessage());
         }
     }
     
@@ -432,7 +470,7 @@ public class Form_DasbordKaryawan extends javax.swing.JPanel {
                 lb_pendapatan.setText(Integer.toString(rs.getInt(1)));
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Periksa kembali " + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Please check again: " + e.getMessage());
         }
     }
 
@@ -448,7 +486,7 @@ public class Form_DasbordKaryawan extends javax.swing.JPanel {
 
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "di cek Kembali " + e + "");
+            JOptionPane.showMessageDialog(null, "Please check again: " + e);
         }
     }
 
@@ -468,7 +506,7 @@ public class Form_DasbordKaryawan extends javax.swing.JPanel {
             rs.close();
             ps.close();
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Cek kembali: " + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Please check again: " + e.getMessage());
         }
     }
 
@@ -481,7 +519,7 @@ public class Form_DasbordKaryawan extends javax.swing.JPanel {
         LaporanStok.addColumn("Stok Produk");
 
         try {
-            String cari = "CALL ProdukKurangDari('" + stok + "');";
+            String cari = "CALL ProductKurangDari('" + stok + "');";
             ps = Koneksi.getConnection().prepareStatement(cari);
             rs = ps.executeQuery();
 
@@ -504,7 +542,7 @@ public class Form_DasbordKaryawan extends javax.swing.JPanel {
                 tb_stok.setModel(LaporanStok);
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Cek kembali " + e + "");
+            JOptionPane.showMessageDialog(null, "Please check again: " + e);
         }
     }
 
@@ -517,7 +555,7 @@ public class Form_DasbordKaryawan extends javax.swing.JPanel {
         LaporanLaris.addColumn("harga_jual");
 
         try {
-            String cari = "CALL TopProduk('" + favorit + "');";
+            String cari = "CALL TopProduct('" + favorit + "');";
             ps = Koneksi.getConnection().prepareStatement(cari);
             rs = ps.executeQuery();
 
@@ -540,7 +578,7 @@ public class Form_DasbordKaryawan extends javax.swing.JPanel {
                 tb_favorit.setModel(LaporanLaris);
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Cek kembali " + e + "");
+            JOptionPane.showMessageDialog(null, "Please check again: " + e);
         }   
     }
     
@@ -568,7 +606,7 @@ public class Form_DasbordKaryawan extends javax.swing.JPanel {
                 tb_laporan.setModel(laporan);
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "cek Kembali " + e + "");
+            JOptionPane.showMessageDialog(null, "Please check again: " + e);
         }
     }
 

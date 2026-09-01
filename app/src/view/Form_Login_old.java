@@ -6,6 +6,7 @@
 package view;
 
 import Main.Menu_Utama;
+import Main.ShopBranding;
 import dao.DAO_Login;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,6 +28,13 @@ public class Form_Login_old extends javax.swing.JFrame {
     public Form_Login_old() throws ClassNotFoundException {
         this.servis = new DAO_Login();
         initComponents();
+        Main.PageUI.paintPage(jPanel1);
+        Main.PageUI.restyleTree(jPanel1);
+        Main.PageUI.stylePrimaryButton(btn_login);
+        btn_login.setFont(Main.UITheme.FONT_BOLD.deriveFont(15f));
+        Main.PageUI.styleField(t_username);
+        Main.PageUI.styleField(t_password);
+        t_password.setEchoChar('\u2022');
         
         btn_login.requestFocus();//supaya fokus ke tombol Form_Login
         
@@ -69,9 +77,14 @@ public class Form_Login_old extends javax.swing.JFrame {
         });
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+        jPanel1.setBackground(Main.UITheme.PAGE_BG);
+        jPanel1.setBorder(javax.swing.BorderFactory.createLineBorder(Main.UITheme.GRID_LINE));
 
-        btn_login.setBackground(new java.awt.Color(0, 204, 0));
+        btn_login.setBackground(Main.UITheme.ACCENT);
+        btn_login.setForeground(java.awt.Color.WHITE);
+        btn_login.setFont(Main.UITheme.FONT_BOLD.deriveFont(15f));
+        btn_login.setFocusPainted(false);
+        btn_login.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         btn_login.setText("Log In");
         btn_login.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -80,19 +93,25 @@ public class Form_Login_old extends javax.swing.JFrame {
         });
 
         btn_exit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Main/image/icons8_cancel_20px.png"))); // NOI18N
+        btn_exit.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         btn_exit.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 btn_exitMouseClicked(evt);
             }
         });
 
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Main/image/login_store.png"))); // NOI18N
+        jLabel1.setIcon(ShopBranding.logoIcon(140));
 
         jLabel2.setText("Username:");
+        jLabel2.setForeground(Main.UITheme.TEXT_SECONDARY);
+        jLabel2.setFont(Main.UITheme.FONT_BOLD);
 
         jLabel3.setText("Password:");
+        jLabel3.setForeground(Main.UITheme.TEXT_SECONDARY);
+        jLabel3.setFont(Main.UITheme.FONT_BOLD);
 
-        jPanel2.setBackground(new java.awt.Color(255, 255, 255));
+        jPanel2.setBackground(Main.UITheme.SURFACE);
+        jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(Main.UITheme.GRID_LINE));
 
         t_username.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         t_username.addFocusListener(new java.awt.event.FocusAdapter() {
@@ -129,7 +148,8 @@ public class Form_Login_old extends javax.swing.JFrame {
                 .addComponent(t_username, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
-        jPanel3.setBackground(new java.awt.Color(255, 255, 255));
+        jPanel3.setBackground(Main.UITheme.SURFACE);
+        jPanel3.setBorder(javax.swing.BorderFactory.createLineBorder(Main.UITheme.GRID_LINE));
 
         t_password.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         t_password.addFocusListener(new java.awt.event.FocusAdapter() {
@@ -148,9 +168,10 @@ public class Form_Login_old extends javax.swing.JFrame {
             }
         });
 
-        lb_showPassword.setBackground(new java.awt.Color(210, 218, 255));
+        lb_showPassword.setBackground(Main.UITheme.ACCENT_LIGHT);
         lb_showPassword.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         lb_showPassword.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Main/image/mata terbuka NW.png"))); // NOI18N
+        lb_showPassword.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         lb_showPassword.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 lb_showPasswordMouseClicked(evt);
@@ -159,6 +180,7 @@ public class Form_Login_old extends javax.swing.JFrame {
 
         lb_hidePassword.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         lb_hidePassword.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Main/image/mata tertutup nw.png"))); // NOI18N
+        lb_hidePassword.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         lb_hidePassword.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 lb_hidePasswordMouseClicked(evt);
@@ -287,7 +309,7 @@ public class Form_Login_old extends javax.swing.JFrame {
     private void lb_showPasswordMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lb_showPasswordMouseClicked
         lb_showPassword.setVisible(false);
         lb_hidePassword.setVisible(true);
-        t_password.setEchoChar((char)0);
+        t_password.setEchoChar((char) 0);
     }//GEN-LAST:event_lb_showPasswordMouseClicked
 
     private void t_passwordMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_t_passwordMouseClicked
@@ -297,34 +319,16 @@ public class Form_Login_old extends javax.swing.JFrame {
     private void lb_hidePasswordMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lb_hidePasswordMouseClicked
         lb_showPassword.setVisible(true);
         lb_hidePassword.setVisible(false);
-        t_password.setEchoChar('*');
+        t_password.setEchoChar('\u2022');
     }//GEN-LAST:event_lb_hidePasswordMouseClicked
 
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
+        /* Modern flat look and feel (FlatLaf) — replaces the old Nimbus LaF. */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Form_Login_old.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Form_Login_old.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Form_Login_old.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Form_Login_old.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
+        Main.UITheme.apply();
         //</editor-fold>
         //</editor-fold>
         //</editor-fold>
@@ -407,9 +411,9 @@ public class Form_Login_old extends javax.swing.JFrame {
     private boolean validasiInput() {
         boolean valid = false;
         if(t_username.getText().trim().isEmpty()){
-            JOptionPane.showMessageDialog(null, "username tidak boleh kosong");
+            JOptionPane.showMessageDialog(null, "Username cannot be empty");
         }else if(t_password.getText().trim().isEmpty()){
-            JOptionPane.showMessageDialog(null, "Password tidak boleh kosong");
+            JOptionPane.showMessageDialog(null, "Password cannot be empty");
         }else{
             valid = true;
         }

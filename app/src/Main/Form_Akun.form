@@ -137,7 +137,7 @@
             <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
               <Color blue="fb" green="e5" red="b6" type="rgb"/>
             </Property>
-            <Property name="text" type="java.lang.String" value="Akun Login"/>
+            <Property name="text" type="java.lang.String" value="Login Account"/>
           </Properties>
         </Component>
       </SubComponents>
@@ -147,7 +147,7 @@
         <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
           <Font name="Lucida Grande" size="14" style="0"/>
         </Property>
-        <Property name="text" type="java.lang.String" value="Login Sebagai:"/>
+        <Property name="text" type="java.lang.String" value="Logged in as:"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel3">
@@ -274,7 +274,7 @@
             <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
               <Color blue="1d" green="2b" red="aa" type="rgb"/>
             </Property>
-            <Property name="text" type="java.lang.String" value="Ubah Password"/>
+            <Property name="text" type="java.lang.String" value="Change Password"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnsave_passwordActionPerformed"/>
@@ -282,22 +282,22 @@
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel6">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Ubah Password :"/>
+            <Property name="text" type="java.lang.String" value="Change Password :"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel7">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Password Lama"/>
+            <Property name="text" type="java.lang.String" value="Current Password"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel8">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Password Baru"/>
+            <Property name="text" type="java.lang.String" value="New Password"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel10">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Ulangi Password"/>
+            <Property name="text" type="java.lang.String" value="Confirm Password"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JPasswordField" name="txtpassword_lama">

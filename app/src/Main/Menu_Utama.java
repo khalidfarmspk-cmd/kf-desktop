@@ -9,26 +9,52 @@ import Master.Form_User;
 import Master.Form_Suplier;
 import Master.Form_Barang;
 import Master.Form_Kategori;
-import Master.Form_Merek;
+import Master.Form_Pelanggan;
+import config.SyncService;
 import view.Form_Login_old;
+import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.UIManager;
+import javax.swing.JPanel;
+import javax.swing.Timer;
 
 /**
  *
  * @author Lenovo
  */
 public class Menu_Utama extends javax.swing.JFrame {
+
+    /** A BoxLayout panel that tracks the JScrollPane viewport's width instead of
+     *  the (buggy, MAX_VALUE-sized) width BoxLayout would otherwise compute for
+     *  children whose maximum width is Integer.MAX_VALUE. */
+    private static class ScrollableMenuPanel extends javax.swing.JPanel implements javax.swing.Scrollable {
+        public java.awt.Dimension getPreferredScrollableViewportSize() {
+            return getPreferredSize();
+        }
+        public int getScrollableUnitIncrement(java.awt.Rectangle visibleRect, int orientation, int direction) {
+            return 16;
+        }
+        public int getScrollableBlockIncrement(java.awt.Rectangle visibleRect, int orientation, int direction) {
+            return visibleRect.height;
+        }
+        public boolean getScrollableTracksViewportWidth() {
+            return true;
+        }
+        public boolean getScrollableTracksViewportHeight() {
+            return false;
+        }
+    }
 
     /**
      * Creates new form Menu_Utama
@@ -39,10 +65,24 @@ public class Menu_Utama extends javax.swing.JFrame {
         initComponents();
         this.setExtendedState(JFrame.MAXIMIZED_BOTH);
 
+        String levelText;
+        if ("PEMILIK".equals(level) || "Owner".equals(level)) {
+            levelText = "Owner";
+        } else if ("KARYAWAN".equals(level) || "Employee".equals(level)) {
+            levelText = "Employee";
+        } else {
+            levelText = level;
+        }
         lb_nama.setText(nama);
-        lb_level.setText(level);
+        lb_level.setText(levelText);
+        lb_signedInValue.setText(nama + "  ·  " + levelText);
+        fitSignedInHeader();
+        // Layout may run before fonts/metrics settle — resize again on the EDT.
+        javax.swing.SwingUtilities.invokeLater(this::fitSignedInHeader);
         execute();
         Date();
+        SyncService.getInstance().start();
+        startSyncIndicatorTimer();
     }
 
     private void Date() {
@@ -50,6 +90,43 @@ public class Menu_Utama extends javax.swing.JFrame {
         SimpleDateFormat TanggalWaktu = new SimpleDateFormat("yyyy-MM-dd");
         String tanggal = TanggalWaktu.format(TanggalSekarang);
         lb_tanggal.setText(tanggal);
+    }
+
+    private void startSyncIndicatorTimer() {
+        refreshSyncIndicator();
+        syncIndicatorTimer = new Timer(30_000, e -> refreshSyncIndicator());
+        syncIndicatorTimer.setRepeats(true);
+        syncIndicatorTimer.start();
+    }
+
+    private void refreshSyncIndicator() {
+        if (lb_syncDot == null || lb_syncLabel == null) {
+            return;
+        }
+        try {
+            SyncService.StatusSnapshot snap = SyncService.getInstance().getStatusSnapshot();
+            Color dot;
+            switch (snap.indicator) {
+                case SYNCED:
+                    dot = new Color(0x2E7D32);
+                    break;
+                case PENDING:
+                    dot = new Color(0xF9A825);
+                    break;
+                case DISABLED:
+                    dot = new Color(0x9B9B98);
+                    break;
+                case OFFLINE:
+                default:
+                    dot = new Color(0xC62828);
+                    break;
+            }
+            lb_syncDot.setForeground(dot);
+            lb_syncLabel.setText(snap.label);
+        } catch (Exception e) {
+            lb_syncDot.setForeground(new Color(0xC62828));
+            lb_syncLabel.setText("Offline");
+        }
     }
 
     JButton btnNewButton = new JButton("Logout");
@@ -70,12 +147,19 @@ public class Menu_Utama extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         panel_sidebar = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        pn_menu = new javax.swing.JPanel();
+        pn_menu = new ScrollableMenuPanel();
         jPanel1 = new javax.swing.JPanel();
         lb_level = new javax.swing.JLabel();
         lb_nama = new javax.swing.JLabel();
         panel_content = new javax.swing.JPanel();
         pn_utama = new javax.swing.JPanel();
+
+        // Extra chrome components for the editorial admin look (added on top
+        // of the generated fields above; not part of the NetBeans-managed set).
+        lb_dateCaption = new javax.swing.JLabel();
+        lb_signedInCaption = new javax.swing.JLabel();
+        lb_signedInValue = new FullTextLabel();
+        panel_logout = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -84,120 +168,143 @@ public class Menu_Utama extends javax.swing.JFrame {
             }
         });
 
-        panel_navbar.setBackground(new java.awt.Color(43, 42, 76));
-        panel_navbar.setPreferredSize(new java.awt.Dimension(871, 70));
+        // ---- Sidebar (full-height): brand + nav + logout ----
+        panel_sidebar.setBackground(Main.UITheme.NAV_BG);
+        panel_sidebar.setPreferredSize(new java.awt.Dimension(248, 432));
+        panel_sidebar.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 0, 1, Main.UITheme.GRID_LINE));
+        panel_sidebar.setLayout(new java.awt.BorderLayout());
 
-        lb_tanggal.setFont(new java.awt.Font("SansSerif", 1, 16)); // NOI18N
-        lb_tanggal.setForeground(new java.awt.Color(255, 255, 255));
-        lb_tanggal.setText("Tanggal ");
+        jLabel2.setOpaque(false);
+        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel2.setPreferredSize(new java.awt.Dimension(44, 44));
+        jLabel2.setMinimumSize(new java.awt.Dimension(44, 44));
+        jLabel2.setMaximumSize(new java.awt.Dimension(44, 44));
+        ShopBranding.applyLogoLabel(jLabel2, 44);
+
+        jLabel1.setText("<html><span style='font-size:12px;color:#1A1A1A;'><b>KHALID FARMS</b></span><br>"
+                + "<span style='font-size:9px;color:#9B9B98;letter-spacing:0.5px;'>BAHRIA TOWN LAHORE</span></html>");
+
+        javax.swing.JPanel brandHeader = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 14, 0));
+        brandHeader.setBackground(Main.UITheme.NAV_BG);
+        brandHeader.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+            javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, Main.UITheme.NAV_RULE),
+            javax.swing.BorderFactory.createEmptyBorder(20, 24, 20, 16)));
+        brandHeader.add(jLabel2);
+        brandHeader.add(jLabel1);
+        panel_sidebar.add(brandHeader, java.awt.BorderLayout.NORTH);
+
+        jScrollPane1.setBorder(null);
+        jScrollPane1.getViewport().setBackground(Main.UITheme.NAV_BG);
+        jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
+        pn_menu.setBackground(Main.UITheme.NAV_BG);
+        pn_menu.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 0, 8, 0));
+        pn_menu.setLayout(new javax.swing.BoxLayout(pn_menu, javax.swing.BoxLayout.Y_AXIS));
+        jScrollPane1.setViewportView(pn_menu);
+        panel_sidebar.add(jScrollPane1, java.awt.BorderLayout.CENTER);
+
+        panel_logout.setBackground(Main.UITheme.NAV_BG);
+        panel_logout.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+            javax.swing.BorderFactory.createMatteBorder(1, 0, 0, 0, Main.UITheme.NAV_RULE),
+            javax.swing.BorderFactory.createEmptyBorder(18, 24, 20, 16)));
+        panel_logout.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        javax.swing.JLabel lb_logout = new javax.swing.JLabel("LOG OUT  →");
+        lb_logout.setFont(Main.UITheme.FONT_BOLD.deriveFont(11f));
+        lb_logout.setForeground(Main.UITheme.ACCENT);
+        panel_logout.setLayout(new java.awt.BorderLayout());
+        panel_logout.add(lb_logout, java.awt.BorderLayout.WEST);
+        panel_sidebar.add(panel_logout, java.awt.BorderLayout.SOUTH);
+
+        getContentPane().add(panel_sidebar, java.awt.BorderLayout.LINE_START);
+
+        // ---- Right column: top meta bar + page content ----
+        javax.swing.JPanel rightColumn = new javax.swing.JPanel(new java.awt.BorderLayout());
+        rightColumn.setBackground(Main.UITheme.PAGE_BG);
+
+        panel_navbar.setBackground(Main.UITheme.SURFACE);
+        panel_navbar.setPreferredSize(new java.awt.Dimension(871, 64));
+        panel_navbar.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, Main.UITheme.GRID_LINE));
+        panel_navbar.setLayout(new java.awt.BorderLayout());
+
+        lb_dateCaption.setFont(Main.UITheme.FONT_CAPTION);
+        lb_dateCaption.setForeground(Main.UITheme.TEXT_CAPTION);
+        lb_dateCaption.setText("DATE");
+
+        lb_tanggal.setFont(Main.UITheme.FONT_BOLD.deriveFont(13f));
+        lb_tanggal.setForeground(Main.UITheme.TEXT_PRIMARY);
+        lb_tanggal.setText("Date ");
+
+        lb_signedInCaption.setFont(Main.UITheme.FONT_CAPTION);
+        lb_signedInCaption.setForeground(Main.UITheme.TEXT_CAPTION);
+        lb_signedInCaption.setText("SIGNED IN");
+
+        lb_signedInValue.setFont(Main.UITheme.FONT_BOLD.deriveFont(13f));
+        lb_signedInValue.setForeground(Main.UITheme.TEXT_PRIMARY);
+        lb_signedInValue.setText("—");
 
         jButton1.setText("Profile");
+        jButton1.setFont(Main.UITheme.FONT_BOLD.deriveFont(12f));
+        jButton1.setBackground(Main.UITheme.SURFACE);
+        jButton1.setForeground(Main.UITheme.TEXT_PRIMARY);
+        jButton1.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 28, 0, 28));
+        jButton1.setFocusPainted(false);
+        jButton1.setContentAreaFilled(false);
+        jButton1.setOpaque(true);
+        jButton1.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
             }
         });
 
-        jLabel1.setFont(new java.awt.Font("SansSerif", 1, 18)); // NOI18N
-        jLabel1.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel1.setText("Point Of Sale");
+        javax.swing.JPanel dateCell = headerMetaCell(lb_dateCaption, lb_tanggal);
+        headerSignedInCell = headerMetaCell(lb_signedInCaption, lb_signedInValue);
 
-        jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Main/image/output-onlinepngtools2.png"))); // NOI18N
+        lb_syncCaption = new javax.swing.JLabel();
+        lb_syncCaption.setFont(Main.UITheme.FONT_CAPTION);
+        lb_syncCaption.setForeground(Main.UITheme.TEXT_CAPTION);
+        lb_syncCaption.setText("SYNC");
+        lb_syncDot = new JLabel("●");
+        lb_syncDot.setFont(Main.UITheme.FONT_BOLD.deriveFont(12f));
+        lb_syncDot.setForeground(new Color(0x9B9B98));
+        lb_syncLabel = new JLabel("—");
+        lb_syncLabel.setFont(Main.UITheme.FONT_BOLD.deriveFont(13f));
+        lb_syncLabel.setForeground(Main.UITheme.TEXT_PRIMARY);
+        javax.swing.JPanel syncValueRow = new javax.swing.JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        syncValueRow.setOpaque(false);
+        syncValueRow.add(lb_syncDot);
+        syncValueRow.add(lb_syncLabel);
+        headerSyncCell = headerMetaCell(lb_syncCaption, syncValueRow);
 
-        javax.swing.GroupLayout panel_navbarLayout = new javax.swing.GroupLayout(panel_navbar);
-        panel_navbar.setLayout(panel_navbarLayout);
-        panel_navbarLayout.setHorizontalGroup(
-            panel_navbarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panel_navbarLayout.createSequentialGroup()
-                .addGap(27, 27, 27)
-                .addComponent(jLabel2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 493, Short.MAX_VALUE)
-                .addComponent(lb_tanggal)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jButton1)
-                .addGap(34, 34, 34))
-        );
-        panel_navbarLayout.setVerticalGroup(
-            panel_navbarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panel_navbarLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(panel_navbarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(panel_navbarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jButton1)
-                        .addComponent(jLabel1)
-                        .addComponent(lb_tanggal))
-                    .addComponent(jLabel2))
-                .addGap(16, 16, 16))
-        );
+        javax.swing.JPanel profileCell = new javax.swing.JPanel(new java.awt.BorderLayout());
+        profileCell.setBackground(Main.UITheme.SURFACE);
+        profileCell.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 1, 0, 0, Main.UITheme.GRID_LINE));
+        profileCell.add(jButton1, java.awt.BorderLayout.CENTER);
+        profileCell.setPreferredSize(new java.awt.Dimension(
+                Math.max(110, jButton1.getPreferredSize().width + 4), 64));
+        profileCell.setMinimumSize(profileCell.getPreferredSize());
+        profileCell.setMaximumSize(new java.awt.Dimension(
+                profileCell.getPreferredSize().width, Integer.MAX_VALUE));
 
-        getContentPane().add(panel_navbar, java.awt.BorderLayout.PAGE_START);
+        // FlowLayout keeps each cell at its preferred width (no equal-column squeeze).
+        javax.swing.JPanel metaRow = new javax.swing.JPanel(
+                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 0, 0));
+        metaRow.setOpaque(false);
+        metaRow.add(dateCell);
+        metaRow.add(headerSyncCell);
+        metaRow.add(headerSignedInCell);
+        metaRow.add(profileCell);
+        panel_navbar.add(metaRow, java.awt.BorderLayout.EAST);
 
-        panel_sidebar.setBackground(new java.awt.Color(255, 255, 255));
-        panel_sidebar.setPreferredSize(new java.awt.Dimension(250, 432));
+        javax.swing.JPanel navbarSpacer = new javax.swing.JPanel();
+        navbarSpacer.setOpaque(false);
+        panel_navbar.add(navbarSpacer, java.awt.BorderLayout.CENTER);
 
-        jScrollPane1.setBorder(null);
+        rightColumn.add(panel_navbar, java.awt.BorderLayout.NORTH);
 
-        pn_menu.setBackground(new java.awt.Color(255, 255, 255));
-        pn_menu.setLayout(new javax.swing.BoxLayout(pn_menu, javax.swing.BoxLayout.Y_AXIS));
-        jScrollPane1.setViewportView(pn_menu);
+        panel_content.setBackground(Main.UITheme.PAGE_BG);
 
-        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
-        jPanel1.setForeground(new java.awt.Color(255, 255, 255));
-
-        lb_level.setBackground(new java.awt.Color(255, 255, 255));
-        lb_level.setFont(new java.awt.Font("SansSerif", 0, 16)); // NOI18N
-        lb_level.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lb_level.setText("Level");
-        lb_level.setPreferredSize(new java.awt.Dimension(47, 30));
-
-        lb_nama.setBackground(new java.awt.Color(255, 255, 255));
-        lb_nama.setFont(new java.awt.Font("SansSerif", 0, 16)); // NOI18N
-        lb_nama.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lb_nama.setText("Nama");
-        lb_nama.setPreferredSize(new java.awt.Dimension(47, 30));
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lb_nama, javax.swing.GroupLayout.DEFAULT_SIZE, 235, Short.MAX_VALUE)
-                    .addComponent(lb_level, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(lb_nama, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(1, 1, 1)
-                .addComponent(lb_level, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-
-        javax.swing.GroupLayout panel_sidebarLayout = new javax.swing.GroupLayout(panel_sidebar);
-        panel_sidebar.setLayout(panel_sidebarLayout);
-        panel_sidebarLayout.setHorizontalGroup(
-            panel_sidebarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 250, Short.MAX_VALUE)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        );
-        panel_sidebarLayout.setVerticalGroup(
-            panel_sidebarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panel_sidebarLayout.createSequentialGroup()
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 301, Short.MAX_VALUE))
-        );
-
-        getContentPane().add(panel_sidebar, java.awt.BorderLayout.LINE_START);
-
-        panel_content.setBackground(new java.awt.Color(255, 255, 255));
-
-        pn_utama.setBackground(new java.awt.Color(255, 255, 255));
+        pn_utama.setBackground(Main.UITheme.PAGE_BG);
         pn_utama.setLayout(new java.awt.CardLayout());
 
         javax.swing.GroupLayout panel_contentLayout = new javax.swing.GroupLayout(panel_content);
@@ -211,19 +318,21 @@ public class Menu_Utama extends javax.swing.JFrame {
             .addComponent(pn_utama, javax.swing.GroupLayout.DEFAULT_SIZE, 403, Short.MAX_VALUE)
         );
 
-        getContentPane().add(panel_content, java.awt.BorderLayout.CENTER);
+        rightColumn.add(panel_content, java.awt.BorderLayout.CENTER);
+        getContentPane().add(rightColumn, java.awt.BorderLayout.CENTER);
 
         setSize(new java.awt.Dimension(896, 529));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
-        if (user.getJenisUser().equals("PEMILIK")) {
+        if (user.getJenisUser().equals("Owner") || user.getJenisUser().equals("PEMILIK")) {
             pn_utama.add(new Form_DasbordPemilik());
             pn_utama.repaint();
             pn_utama.revalidate();
-        } else if (user.getJenisUser().equals("KARYAWAN")) {
-            pn_utama.add(new Form_DasbordKaryawan());
+        } else if (user.getJenisUser().equals("Employee") || user.getJenisUser().equals("KARYAWAN")) {
+            // Staff only has Sell — land there immediately.
+            pn_utama.add(new Form_Penjualan());
             pn_utama.repaint();
             pn_utama.revalidate();
         }
@@ -237,33 +346,15 @@ public class Menu_Utama extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
+        /* Modern flat look and feel (FlatLaf) — replaces the old Nimbus LaF. */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Menu_Utama.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Menu_Utama.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Menu_Utama.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Menu_Utama.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
+        Main.UITheme.apply();
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new Menu_Utama("Nama", "level").setVisible(true);
+                new Menu_Utama("Name", "level").setVisible(true);
             }
         });
     }
@@ -284,129 +375,213 @@ public class Menu_Utama extends javax.swing.JFrame {
     private javax.swing.JPanel pn_utama;
     // End of variables declaration//GEN-END:variables
 
-    private void execute() {
-        ImageIcon IconHome = new ImageIcon(getClass().getResource("/Main/image/icon_home.png"));
-        ImageIcon IconMaster = new ImageIcon(getClass().getResource("/Main/image/icon_master.png"));
-        ImageIcon IconTransaksi = new ImageIcon(getClass().getResource("/Main/image/icon_transaksi.png"));
-        ImageIcon IconBarang = new ImageIcon(getClass().getResource("/Main/image/icon_product.png"));
-        ImageIcon IconLogout = new ImageIcon(getClass().getResource("/Main/image/icon_logout.png"));
+    // Extra chrome fields for the editorial admin look.
+    private javax.swing.JLabel lb_dateCaption;
+    private javax.swing.JLabel lb_signedInCaption;
+    private javax.swing.JLabel lb_signedInValue;
+    private javax.swing.JPanel panel_logout;
+    private javax.swing.JPanel headerSignedInCell;
+    private javax.swing.JLabel lb_syncCaption;
+    private javax.swing.JLabel lb_syncDot;
+    private javax.swing.JLabel lb_syncLabel;
+    private javax.swing.JPanel headerSyncCell;
+    private Timer syncIndicatorTimer;
 
-        MenuItem masProduk = new MenuItem(null, true, IconBarang, "Products", new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pn_utama.removeAll();
-                pn_utama.add(new Form_Barang());
-                pn_utama.repaint();
-                pn_utama.revalidate();
+    private final List<MenuItem> navItems = new ArrayList<>();
+
+    /**
+     * Label that never ellipsizes — FlatLaf/Swing's layoutCompoundLabel was
+     * clipping "admin · Owner" to "admin · Ow..." when the cell was narrow.
+     */
+    private static final class FullTextLabel extends javax.swing.JLabel {
+        FullTextLabel() {
+            setOpaque(false);
+        }
+
+        @Override
+        public java.awt.Dimension getPreferredSize() {
+            java.awt.Font font = getFont();
+            if (font == null) {
+                return super.getPreferredSize();
             }
-        });
-        MenuItem masKategory = new MenuItem(null, true, IconBarang, "Category", new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pn_utama.removeAll();
-                pn_utama.add(new Form_Kategori());
-                pn_utama.repaint();
-                pn_utama.revalidate();
+            String text = getText() == null ? "" : getText();
+            java.awt.FontMetrics fm = getFontMetrics(font);
+            java.awt.Insets in = getInsets();
+            int padX = (in == null ? 0 : in.left + in.right);
+            int padY = (in == null ? 0 : in.top + in.bottom);
+            return new java.awt.Dimension(
+                    fm.stringWidth(text) + padX + 2,
+                    Math.max(fm.getHeight() + padY, 16));
+        }
+
+        @Override
+        public java.awt.Dimension getMinimumSize() {
+            return getPreferredSize();
+        }
+
+        @Override
+        public java.awt.Dimension getMaximumSize() {
+            return getPreferredSize();
+        }
+
+        @Override
+        protected void paintComponent(java.awt.Graphics g) {
+            if (isOpaque()) {
+                g.setColor(getBackground());
+                g.fillRect(0, 0, getWidth(), getHeight());
             }
-        });
-        MenuItem masMerek = new MenuItem(null, true, IconBarang, "Brand", new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pn_utama.removeAll();
-                pn_utama.add(new Form_Merek());
-                pn_utama.repaint();
-                pn_utama.revalidate();
+            String text = getText();
+            if (text == null || text.isEmpty()) {
+                return;
             }
-        });
-        MenuItem masSupplier = new MenuItem(null, true, IconBarang, "Suppliers", new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pn_utama.removeAll();
-                pn_utama.add(new Form_Suplier());
-                pn_utama.repaint();
-                pn_utama.revalidate();
-            }
-        });
-        MenuItem masUser = new MenuItem(null, true, IconBarang, "Users", new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pn_utama.removeAll();
-                try {
-                    pn_utama.add(new Form_User());
-                } catch (ClassNotFoundException ex) {
-                    Logger.getLogger(Menu_Utama.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                pn_utama.repaint();
-                pn_utama.revalidate();
+            java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+            try {
+                g2.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
+                        java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                g2.setFont(getFont());
+                g2.setColor(getForeground());
+                java.awt.FontMetrics fm = g2.getFontMetrics();
+                java.awt.Insets in = getInsets();
+                int x = in == null ? 0 : in.left;
+                int y = (in == null ? 0 : in.top) + fm.getAscent()
+                        + Math.max(0, (getHeight() - fm.getHeight()) / 2);
+                g2.drawString(text, x, y);
+            } finally {
+                g2.dispose();
             }
         }
-        );
+    }
 
-        MenuItem Sell = new MenuItem(null, true, IconBarang, "Sell", new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pn_utama.removeAll();
-                pn_utama.add(new Form_Penjualan());
-                pn_utama.repaint();
-                pn_utama.revalidate();
-            }
-        });
+    /** Bordered meta cell used in the top bar (DATE / SIGNED IN / SYNC). */
+    private javax.swing.JPanel headerMetaCell(javax.swing.JLabel caption, java.awt.Component value) {
+        javax.swing.JPanel cell = new javax.swing.JPanel(new java.awt.BorderLayout(0, 2));
+        cell.setBackground(Main.UITheme.SURFACE);
+        cell.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+            javax.swing.BorderFactory.createMatteBorder(0, 1, 0, 0, Main.UITheme.GRID_LINE),
+            javax.swing.BorderFactory.createEmptyBorder(12, 22, 12, 28)));
+        caption.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        if (value instanceof javax.swing.JLabel) {
+            ((javax.swing.JLabel) value).setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        }
+        cell.add(caption, java.awt.BorderLayout.NORTH);
+        cell.add(value, java.awt.BorderLayout.CENTER);
+        return cell;
+    }
 
-        MenuItem Restock = new MenuItem(null, true, IconBarang, "Restock", new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pn_utama.removeAll();
-                pn_utama.add(new Form_Pembelian());
-                pn_utama.repaint();
-                pn_utama.revalidate();
-            }
-        });
+    /** Resize SIGNED IN cell so the full username · role string is visible. */
+    private void fitSignedInHeader() {
+        if (lb_signedInValue == null || headerSignedInCell == null) {
+            return;
+        }
+        String text = lb_signedInValue.getText() == null ? "" : lb_signedInValue.getText();
+        java.awt.Font font = lb_signedInValue.getFont();
+        if (font == null) {
+            font = Main.UITheme.FONT_BOLD.deriveFont(13f);
+            lb_signedInValue.setFont(font);
+        }
+        int textW = lb_signedInValue.getFontMetrics(font).stringWidth(text);
+        int capW = 0;
+        if (lb_signedInCaption.getFont() != null && lb_signedInCaption.getText() != null) {
+            capW = lb_signedInCaption.getFontMetrics(lb_signedInCaption.getFont())
+                    .stringWidth(lb_signedInCaption.getText());
+        }
+        // Explicit padding (border may not report insets until displayable).
+        int pad = 22 + 28 + 16;
+        int width = Math.max(220, Math.max(textW, capW) + pad);
+        java.awt.Dimension size = new java.awt.Dimension(width, 64);
+        headerSignedInCell.setPreferredSize(size);
+        headerSignedInCell.setMinimumSize(size);
+        headerSignedInCell.setMaximumSize(size);
+        if (panel_navbar != null) {
+            panel_navbar.revalidate();
+            panel_navbar.repaint();
+        }
+    }
 
-        MenuItem menuDasboardPemilik = new MenuItem(IconHome, false, null, "Dasboard", new ActionListener() {
+    /** Builds a numbered, clickable sidebar row that swaps the content panel when clicked. */
+    private MenuItem navItem(int index, String menuName, java.util.function.Supplier<JPanel> pageSupplier) {
+        final MenuItem[] holder = new MenuItem[1];
+        MenuItem item = new MenuItem(index, menuName, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                selectNavItem(holder[0]);
                 pn_utama.removeAll();
-                pn_utama.add(new Form_DasbordPemilik());
+                pn_utama.add(pageSupplier.get());
                 pn_utama.repaint();
                 pn_utama.revalidate();
             }
         });
-        MenuItem menuDasboardKaryawan = new MenuItem(IconHome, false, null, "Dasboard", new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pn_utama.removeAll();
-                pn_utama.add(new Form_DasbordKaryawan());
-                pn_utama.repaint();
-                pn_utama.revalidate();
-            }
-        });
-        MenuItem menuMasterPemilik = new MenuItem(IconMaster, false, null, "Master", null, masProduk, masKategory, masMerek, masSupplier, masUser);
-        MenuItem menuMasterKaryawan = new MenuItem(IconMaster, false, null, "Master", null, masProduk, masKategory, masMerek);
-        MenuItem menuTransaction = new MenuItem(IconTransaksi, false, null, "Transaction", null, Sell, Restock);
-        MenuItem menuReportPemilik = new MenuItem(IconMaster, false, null, "Report", new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pn_utama.removeAll();
-                pn_utama.add(new Form_ReportPemilik());
-                pn_utama.repaint();
-                pn_utama.revalidate();
-            }
-        });
-        MenuItem menuReportKaryawan = new MenuItem(IconMaster, false, null, "Report", new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pn_utama.removeAll();
-                pn_utama.add(new Form_ReportKaryawan());
-                pn_utama.repaint();
-                pn_utama.revalidate();
-            }
-        });
-        MenuItem menuLogOut = new MenuItem(IconLogout, false, null, "Log Out", new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+        holder[0] = item;
+        navItems.add(item);
+        pn_menu.add(item);
+        return item;
+    }
 
-                int a = JOptionPane.showConfirmDialog(null, "Apakah kamu yakin?", "Select", JOptionPane.YES_NO_OPTION);
-                // JOptionPane.setRootFrame(null);
+    private void selectNavItem(MenuItem selected) {
+        for (MenuItem m : navItems) {
+            m.setSelected(m == selected);
+        }
+    }
+
+    /** Open a sidebar page by its menu label (e.g. "Sell", "Restock", "Reports"). */
+    public void openPage(String menuName) {
+        if (menuName == null) {
+            return;
+        }
+        for (MenuItem m : navItems) {
+            if (!m.isHeader() && menuName.equalsIgnoreCase(m.getMenuName())) {
+                m.activate();
+                return;
+            }
+        }
+    }
+
+    private void execute() {
+        boolean isOwner = user.getJenisUser().equals("Owner") || user.getJenisUser().equals("PEMILIK");
+        int i = 1;
+        MenuItem home;
+
+        if (isOwner) {
+            pn_menu.add(new MenuItem("Overview", false));
+            home = navItem(i++, "Dashboard", () -> new Form_DasbordPemilik());
+
+            pn_menu.add(new MenuItem("Master Data", true));
+            navItem(i++, "Products", () -> new Form_Barang());
+            navItem(i++, "Categories", () -> new Form_Kategori());
+            navItem(i++, "Customers", () -> new Form_Pelanggan());
+            navItem(i++, "Suppliers", () -> new Form_Suplier());
+            navItem(i++, "Users", () -> {
+                try {
+                    return new Form_User();
+                } catch (ClassNotFoundException ex) {
+                    Logger.getLogger(Menu_Utama.class.getName()).log(Level.SEVERE, null, ex);
+                    return new JPanel();
+                }
+            });
+
+            pn_menu.add(new MenuItem("Transactions", true));
+            navItem(i++, "Sell", () -> new Form_Penjualan());
+            navItem(i++, "Restock", () -> new Form_Pembelian());
+            navItem(i++, "Expenses", () -> new Form_Pengeluaran());
+            navItem(i++, "Reports", () -> new Form_ReportPemilik());
+
+            pn_menu.add(new MenuItem("Settings", true));
+            navItem(i++, "Invoice", () -> new Form_Pengaturan());
+        } else {
+            // Staff: Sell, Customers, and today's sales.
+            pn_menu.add(new MenuItem("Register", false));
+            home = navItem(i++, "Sell", () -> new Form_Penjualan());
+            navItem(i++, "Customers", () -> new Form_Pelanggan());
+            navItem(i++, "Today's sales", () -> new Form_ReportKaryawan());
+        }
+
+        pn_menu.revalidate();
+
+        selectNavItem(home);
+
+        panel_logout.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                int a = JOptionPane.showConfirmDialog(null, "Are you sure?", "Select", JOptionPane.YES_NO_OPTION);
                 if (a == JOptionPane.YES_OPTION) {
                     dispose();
                     Form_Login_old obj = null;
@@ -419,23 +594,6 @@ public class Menu_Utama extends javax.swing.JFrame {
                 }
             }
         });
-        if (user.getJenisUser().equals("PEMILIK")) {
-            addMenu(menuDasboardPemilik, menuMasterPemilik, menuTransaction, menuReportPemilik, menuLogOut);
-        } else if (user.getJenisUser().equals("KARYAWAN")) {
-            addMenu(menuDasboardKaryawan, menuMasterKaryawan, menuTransaction, menuReportKaryawan, menuLogOut);
-        }
-
-    }
-
-    private void addMenu(MenuItem... menu) {
-        for (int i = 0; i < menu.length; i++) {
-            pn_menu.add(menu[i]);
-            ArrayList<MenuItem> subMenu = menu[i].getSubMenu();
-            for (MenuItem m : subMenu) {
-                addMenu(m);
-            }
-        }
-        pn_menu.revalidate();
     }
 
 }

@@ -5,148 +5,153 @@
  */
 package Main;
 
-import java.awt.Dimension;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import javax.swing.Icon;
 
 /**
+ * A single row in the sidebar. Two flavors:
+ *  - section header ("OVERVIEW", "MASTER DATA", ...): static, non-clickable caption
+ *  - nav item ("01  Dashboard"): numbered, clickable, highlights red when selected
  *
- * @author Lenovo
+ * Spacing is tuned to the editorial reference: generous row height, fixed
+ * index column, and a clear left safe-zone.
  */
 public class MenuItem extends javax.swing.JPanel {
 
-    /**
-     * @return the subMenu
-     */
-    public ArrayList<MenuItem> getSubMenu() {
-        return subMenu;
-    }
+    /** Left margin from sidebar edge to content. */
+    private static final int PAD_X = 24;
+    /** Fixed width for the "01" index so labels share one vertical edge. */
+    private static final int INDEX_W = 26;
+    /** Gutter between index and label. */
+    private static final int INDEX_GAP = 14;
+    /** Clickable nav row height (includes vertical padding). */
+    private static final int ROW_H = 44;
 
-    private final ArrayList<MenuItem> subMenu = new ArrayList<>();
-    
+    private final boolean header;
     private ActionListener act;
-    
-    public MenuItem(Icon icon, boolean sbm, Icon iconSub, String menuName, ActionListener act, MenuItem... subMenu) {
-        initComponents();
-        
-        lb_icon.setIcon(icon);
-        lb_menuName.setText(menuName);
-        lb_iconSub.setIcon(iconSub);
-        lb_iconSub.setVisible(sbm);
-        
-        if (act != null){
-            this.act = act;
-        }
-        this.setSize(new Dimension(Integer.MAX_VALUE, 45));
-        this.setMaximumSize(new Dimension(Integer.MAX_VALUE,45));
-        this.setMinimumSize(new Dimension(Integer.MAX_VALUE,45));
-        for(int i =0; i < subMenu.length; i++){
-            this.subMenu.add(subMenu[i]);
-            subMenu[i].setVisible(false);
-        }
- 
+    private boolean selected = false;
+
+    /** Section header row, e.g. "OVERVIEW". */
+    public MenuItem(String sectionTitle) {
+        this(sectionTitle, false);
     }
 
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
+    /** Section header; set {@code withTopRule} for a hairline above (Master Data / Transactions). */
+    public MenuItem(String sectionTitle, boolean withTopRule) {
+        this.header = true;
+        initComponents();
+        remove(lb_index);
+        lb_index.setVisible(false);
+        lb_menuName.setText(sectionTitle.toUpperCase());
+        lb_menuName.setFont(Main.UITheme.FONT_CAPTION.deriveFont(10f));
+        lb_menuName.setForeground(Main.UITheme.TEXT_CAPTION);
+        setBackground(Main.UITheme.NAV_BG);
+        setCursor(java.awt.Cursor.getDefaultCursor());
+        setLayout(new java.awt.BorderLayout());
+        add(lb_menuName, java.awt.BorderLayout.WEST);
 
-        lb_icon = new javax.swing.JLabel();
-        lb_menuName = new javax.swing.JLabel();
-        lb_iconSub = new javax.swing.JLabel();
+        // Top rule + breathing room above the caption; tight gap below into first item.
+        int padTop = withTopRule ? 18 : 16;
+        int padBottom = 8;
+        int height = padTop + padBottom + 14;
+        setBorder(javax.swing.BorderFactory.createCompoundBorder(
+            withTopRule
+                ? javax.swing.BorderFactory.createMatteBorder(1, 0, 0, 0, Main.UITheme.NAV_RULE)
+                : javax.swing.BorderFactory.createEmptyBorder(),
+            javax.swing.BorderFactory.createEmptyBorder(padTop, PAD_X, padBottom, 16)));
 
-        setBackground(new java.awt.Color(255, 255, 255));
-        setPreferredSize(new java.awt.Dimension(250, 83));
+        java.awt.Dimension d = new java.awt.Dimension(Integer.MAX_VALUE, height + (withTopRule ? 1 : 0));
+        setPreferredSize(d);
+        setMaximumSize(d);
+        setMinimumSize(d);
+    }
+
+    /** Clickable, numbered nav row, e.g. "01  Dashboard". */
+    public MenuItem(int index, String menuName, ActionListener act) {
+        this.header = false;
+        this.act = act;
+        initComponents();
+        lb_index.setText(String.format("%02d", index));
+        lb_menuName.setText(menuName);
+        setBorder(javax.swing.BorderFactory.createEmptyBorder(0, PAD_X, 0, 16));
+
         addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mousePressed(java.awt.event.MouseEvent evt) {
-                formMousePressed(evt);
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                if (MenuItem.this.act != null) {
+                    MenuItem.this.act.actionPerformed(null);
+                }
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                if (!selected) {
+                    setBackground(Main.UITheme.DIVIDER);
+                }
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                if (!selected) {
+                    setBackground(Main.UITheme.NAV_BG);
+                }
             }
         });
 
-        lb_menuName.setBackground(new java.awt.Color(210, 218, 255));
-        lb_menuName.setText("Menu Item");
+        java.awt.Dimension d = new java.awt.Dimension(Integer.MAX_VALUE, ROW_H);
+        setPreferredSize(d);
+        setMaximumSize(d);
+        setMinimumSize(d);
+    }
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(12, 12, 12)
-                .addComponent(lb_icon, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(lb_iconSub, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(lb_menuName, javax.swing.GroupLayout.PREFERRED_SIZE, 104, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(19, Short.MAX_VALUE))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lb_icon, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(lb_menuName, javax.swing.GroupLayout.DEFAULT_SIZE, 51, Short.MAX_VALUE)
-                    .addComponent(lb_iconSub, javax.swing.GroupLayout.DEFAULT_SIZE, 51, Short.MAX_VALUE))
-                .addContainerGap())
-        );
-    }// </editor-fold>//GEN-END:initComponents
+    public boolean isHeader() {
+        return header;
+    }
 
-    private boolean showing = false;
-    private void formMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMousePressed
-        setBackground(new java.awt.Color(255, 255, 255));
-        if (showing){
-            hideMenu();
-        }else{
-            showMenu();
-        }
-        if(act != null){
+    public String getMenuName() {
+        return lb_menuName != null ? lb_menuName.getText() : "";
+    }
+
+    /** Programmatically fire the same action as a sidebar click. */
+    public void activate() {
+        if (!header && act != null) {
             act.actionPerformed(null);
         }
-    }//GEN-LAST:event_formMousePressed
-
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel lb_icon;
-    private javax.swing.JLabel lb_iconSub;
-    private javax.swing.JLabel lb_menuName;
-    // End of variables declaration//GEN-END:variables
-
-    private void hideMenu() {
-        new Thread(new Runnable() {
-            @Override
-            public void run(){
-                for (int i = subMenu.size() - 1; i >= 0; i--){
-                    sleep();
-                    subMenu.get(i).setVisible(false);
-                    subMenu.get(i).hideMenu();
-                }
-                getParent().repaint();
-                getParent().revalidate();
-                showing = false;    
-            }
-        }).start();;
     }
-    
-    private void showMenu() {
-        new Thread(new Runnable() {
-            @Override
-            public void run(){
-                for (int i = 0; i < subMenu.size(); i++){
-                    sleep();
-                    subMenu.get(i).setVisible(true);
-                }
-                showing = true; 
-                getParent().repaint();
-                getParent().revalidate();   
-            }
-        }).start();;
-    }
-    
-    private void sleep(){
-        try{
-            Thread.sleep(20);
-        } catch (Exception e){
+
+    public void setSelected(boolean value) {
+        this.selected = value;
+        if (value) {
+            setBackground(Main.UITheme.ACCENT);
+            lb_index.setForeground(java.awt.Color.WHITE);
+            lb_menuName.setForeground(java.awt.Color.WHITE);
+            lb_menuName.setFont(Main.UITheme.FONT_BOLD.deriveFont(13f));
+        } else {
+            setBackground(Main.UITheme.NAV_BG);
+            lb_index.setForeground(Main.UITheme.TEXT_MUTED);
+            lb_menuName.setForeground(new java.awt.Color(0x1A1A1A));
+            lb_menuName.setFont(Main.UITheme.FONT_REGULAR.deriveFont(13f));
         }
     }
+
+    @SuppressWarnings("unchecked")
+    private void initComponents() {
+        lb_index = new javax.swing.JLabel();
+        lb_menuName = new javax.swing.JLabel();
+
+        setBackground(Main.UITheme.NAV_BG);
+        setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        setOpaque(true);
+
+        lb_index.setFont(Main.UITheme.FONT_REGULAR.deriveFont(11f));
+        lb_index.setForeground(Main.UITheme.TEXT_MUTED);
+        lb_index.setText("00");
+        lb_index.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+
+        lb_menuName.setFont(Main.UITheme.FONT_REGULAR.deriveFont(13f));
+        lb_menuName.setForeground(new java.awt.Color(0x1A1A1A));
+        lb_menuName.setText("Menu Item");
+
+        setLayout(new java.awt.BorderLayout(INDEX_GAP, 0));
+        lb_index.setPreferredSize(new java.awt.Dimension(INDEX_W, ROW_H));
+        add(lb_index, java.awt.BorderLayout.WEST);
+        add(lb_menuName, java.awt.BorderLayout.CENTER);
+    }
+
+    private javax.swing.JLabel lb_index;
+    private javax.swing.JLabel lb_menuName;
 }
