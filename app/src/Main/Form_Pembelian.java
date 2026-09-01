@@ -248,7 +248,7 @@ public class Form_Pembelian extends javax.swing.JPanel {
             }
         }
         if (lb_receivedMeta != null) {
-            lb_receivedMeta.setText(new SimpleDateFormat("d MMM · HH:mm").format(new Date()));
+            lb_receivedMeta.setText(new SimpleDateFormat("d MMM · h:mm a").format(new Date()));
         }
     }
 

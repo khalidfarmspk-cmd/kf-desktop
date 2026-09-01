@@ -927,7 +927,7 @@ public class Form_Penjualan extends javax.swing.JPanel {
             }
         }
         if (lb_timeMeta != null) {
-            lb_timeMeta.setText(new SimpleDateFormat("d MMM · HH:mm").format(new Date()));
+            lb_timeMeta.setText(new SimpleDateFormat("d MMM · h:mm a").format(new Date()));
         }
     }
 

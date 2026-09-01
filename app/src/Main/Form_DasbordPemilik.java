@@ -193,7 +193,7 @@ public class Form_DasbordPemilik extends javax.swing.JPanel {
         revenueCell.add(revenueValueRow);
 
         lb_bannerMeta = new javax.swing.JLabel("Shift 1 · store closes 21:00 · updated "
-                + new SimpleDateFormat("HH:mm").format(new Date()));
+                + new SimpleDateFormat("h:mm a").format(new Date()));
         lb_bannerMeta.setFont(UITheme.FONT_REGULAR.deriveFont(11f));
         lb_bannerMeta.setForeground(new Color(255, 255, 255, 210));
         lb_bannerMeta.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
@@ -812,7 +812,7 @@ public class Form_DasbordPemilik extends javax.swing.JPanel {
             laporan.addColumn("CASHIER");
             laporan.addColumn("TOTAL");
 
-            SimpleDateFormat clock = new SimpleDateFormat("HH:mm");
+            SimpleDateFormat clock = new SimpleDateFormat("h:mm a");
             while (rs.next()) {
                 java.sql.Timestamp at = rs.getTimestamp("waktu_penjualan");
                 laporan.addRow(new Object[]{
