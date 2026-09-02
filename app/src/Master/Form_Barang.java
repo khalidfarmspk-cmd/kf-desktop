@@ -26,8 +26,10 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 import java.util.logging.Level;
@@ -67,6 +69,10 @@ public class Form_Barang extends javax.swing.JPanel {
     private JLabel lb_editTitle;
     private static final Color PANEL_BG = new Color(0xF3F3F1);
     private static final Color RULE = new Color(0xD0D0CC);
+    private static final String ALL_CATEGORIES = "All items";
+    private JPanel pn_categoryTabs;
+    private final List<JButton> categoryButtons = new ArrayList<>();
+    private String activeCategory = ALL_CATEGORIES;
     private static final String PLACEHOLDER_CAT = "Select category";
     private static final String PLACEHOLDER_SUP = "Select supplier";
     private static final String PLACEHOLDER_UNIT = "Select unit";
@@ -87,7 +93,7 @@ public class Form_Barang extends javax.swing.JPanel {
         txttemp_IDsupplier.setVisible(false);
         txttemp_IDsatuan.setVisible(false);
         txt_id.setVisible(false);
-        GetData();
+        loadCategoryTabs(); // also performs the first GetData via selectCategory
         BtnEnabled(false);
         btn_simpan.setText("Save product");
         txt_id.setEditable(false);
@@ -253,6 +259,86 @@ public class Form_Barang extends javax.swing.JPanel {
         updateMargin();
     }
 
+    /** Rebuild the tab strip from whatever categories currently exist. */
+    private void loadCategoryTabs() {
+        if (pn_categoryTabs == null) {
+            return;
+        }
+        String previous = activeCategory;
+        pn_categoryTabs.removeAll();
+        categoryButtons.clear();
+        addCategoryTab(ALL_CATEGORIES);
+        boolean stillThere = ALL_CATEGORIES.equals(previous);
+        try {
+            Connection conn = Koneksi.getConnection();
+            PreparedStatement ps = conn.prepareStatement(
+                    "SELECT nama_kategori FROM kategori ORDER BY nama_kategori");
+            java.sql.ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                String name = rs.getString(1);
+                if (name == null || name.trim().isEmpty()) {
+                    continue;
+                }
+                addCategoryTab(name);
+                if (name.equals(previous)) {
+                    stillThere = true;
+                }
+            }
+            rs.close();
+            ps.close();
+        } catch (Exception ignored) {
+            // No categories yet — the All items tab still stands on its own.
+        }
+        // A category can be renamed or removed while this screen is open.
+        selectCategory(stillThere ? previous : ALL_CATEGORIES);
+        pn_categoryTabs.revalidate();
+        pn_categoryTabs.repaint();
+    }
+
+    private void addCategoryTab(String name) {
+        JButton tab = new JButton(name);
+        tab.setFocusPainted(false);
+        tab.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        tab.setFont(UITheme.FONT_BOLD.deriveFont(12f));
+        tab.addActionListener(e -> selectCategory(name));
+        categoryButtons.add(tab);
+        pn_categoryTabs.add(tab);
+        pn_categoryTabs.add(Box.createHorizontalStrut(6));
+    }
+
+    private void selectCategory(String name) {
+        activeCategory = name;
+        for (JButton b : categoryButtons) {
+            boolean on = name.equals(b.getText());
+            b.setOpaque(true);
+            if (on) {
+                b.setBackground(PageUI.INK);
+                b.setForeground(Color.WHITE);
+                b.setBorder(BorderFactory.createEmptyBorder(9, 15, 9, 15));
+            } else {
+                b.setBackground(UITheme.SURFACE);
+                b.setForeground(PageUI.INK);
+                b.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(RULE),
+                        BorderFactory.createEmptyBorder(8, 14, 8, 14)));
+            }
+        }
+        refreshList();
+    }
+
+    private boolean isCategoryFiltered() {
+        return activeCategory != null && !ALL_CATEGORIES.equals(activeCategory);
+    }
+
+    /** Re-run whichever view is active, honouring the selected category. */
+    private void refreshList() {
+        if (txt_cariBarang != null && !txt_cariBarang.getText().trim().isEmpty()) {
+            cariBarang();
+        } else {
+            GetData();
+        }
+    }
+
     private void BtnEnabled(boolean x) {
         // Selecting a row must not hand Delete back to staff.
         btn_hapus.setEnabled(x && canEdit);
@@ -324,12 +410,17 @@ public class Form_Barang extends javax.swing.JPanel {
     private void GetData() {
         try {
             Connection conn = Koneksi.getConnection();
-            java.sql.Statement stm = conn.createStatement();
-            java.sql.ResultSet sql = stm.executeQuery(
-                    "SELECT kode_produk AS CODE, nama_produk AS PRODUCT, "
+            String sqlText = "SELECT kode_produk AS CODE, nama_produk AS PRODUCT, "
                     + "nama_kategori AS CATEGORY, "
-                    + "harga_beli AS BUY, harga_jual AS SELL, stok_produk AS STOCK FROM tableproduk");
-            applyListModel(sql);
+                    + "harga_beli AS BUY, harga_jual AS SELL, stok_produk AS STOCK FROM tableproduk";
+            if (isCategoryFiltered()) {
+                sqlText += " WHERE nama_kategori = ?";
+            }
+            PreparedStatement ps = conn.prepareStatement(sqlText);
+            if (isCategoryFiltered()) {
+                ps.setString(1, activeCategory);
+            }
+            applyListModel(ps.executeQuery());
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error " + e);
         } catch (ClassNotFoundException ex) {
@@ -581,7 +672,24 @@ public class Form_Barang extends javax.swing.JPanel {
         leftCenter.add(jScrollPane1, BorderLayout.CENTER);
         leftCenter.add(lb_endResults, BorderLayout.SOUTH);
 
-        left.add(searchRow, BorderLayout.NORTH);
+        pn_categoryTabs = new JPanel();
+        pn_categoryTabs.setOpaque(false);
+        pn_categoryTabs.setLayout(new BoxLayout(pn_categoryTabs, BoxLayout.X_AXIS));
+        pn_categoryTabs.setBorder(BorderFactory.createEmptyBorder(12, 0, 0, 0));
+
+        // Flat BoxLayout stack rather than another nested BorderLayout level —
+        // deeply nested BorderLayouts silently fail to paint in this build.
+        JPanel northStack = new JPanel();
+        northStack.setOpaque(false);
+        northStack.setLayout(new BoxLayout(northStack, BoxLayout.Y_AXIS));
+        searchRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+        searchRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        pn_categoryTabs.setMaximumSize(new Dimension(Integer.MAX_VALUE, 54));
+        pn_categoryTabs.setAlignmentX(Component.LEFT_ALIGNMENT);
+        northStack.add(searchRow);
+        northStack.add(pn_categoryTabs);
+
+        left.add(northStack, BorderLayout.NORTH);
         left.add(leftCenter, BorderLayout.CENTER);
         left.add(footer, BorderLayout.SOUTH);
 
@@ -922,7 +1030,7 @@ public class Form_Barang extends javax.swing.JPanel {
         SelectKategori();
         SelectSupplier();
         SelectSatuan();
-        GetData();
+        loadCategoryTabs(); // picks up categories added since this screen opened
         showBarcodePreview("");
         btn_dapatKode.setVisible(true);
         txt_id.setText("");
@@ -1383,20 +1491,27 @@ public class Form_Barang extends javax.swing.JPanel {
     private void cariBarang() {
         try {
             Connection conn = Koneksi.getConnection();
-            java.sql.Statement stm = conn.createStatement();
-            String q = txt_cariBarang.getText();
-            java.sql.ResultSet sql = stm.executeQuery(
-                    "SELECT kode_produk AS CODE, nama_produk AS PRODUCT, "
+            String q = txt_cariBarang.getText().trim();
+            // The OR group is bracketed: without it the appended category AND
+            // would bind to the last LIKE only and widen the result set.
+            String sqlText = "SELECT kode_produk AS CODE, nama_produk AS PRODUCT, "
                     + "nama_kategori AS CATEGORY, "
                     + "harga_beli AS BUY, harga_jual AS SELL, stok_produk AS STOCK FROM tableproduk"
-                    + " WHERE tableproduk.kode_produk LIKE '%" + q
-                    + "%' || tableproduk.nama_produk LIKE '%" + q
-                    + "%' || tableproduk.nama_kategori LIKE '%" + q
-                    + "%' || tableproduk.harga_beli LIKE '%" + q
-                    + "%' || tableproduk.harga_jual LIKE '%" + q
-                    + "%' || tableproduk.stok_produk LIKE '%" + q
-                    + "%' || tableproduk.nama_supplier LIKE '%" + q + "%'");
-            applyListModel(sql);
+                    + " WHERE (kode_produk LIKE ? OR nama_produk LIKE ? OR nama_kategori LIKE ?"
+                    + " OR harga_beli LIKE ? OR harga_jual LIKE ? OR stok_produk LIKE ?"
+                    + " OR nama_supplier LIKE ?)";
+            if (isCategoryFiltered()) {
+                sqlText += " AND nama_kategori = ?";
+            }
+            PreparedStatement ps = conn.prepareStatement(sqlText);
+            String like = "%" + q + "%";
+            for (int i = 1; i <= 7; i++) {
+                ps.setString(i, like);
+            }
+            if (isCategoryFiltered()) {
+                ps.setString(8, activeCategory);
+            }
+            applyListModel(ps.executeQuery());
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error " + e);
         } catch (ClassNotFoundException ex) {
