@@ -568,10 +568,11 @@ public class Menu_Utama extends javax.swing.JFrame {
             pn_menu.add(new MenuItem("Settings", true));
             navItem(i++, "Invoice", () -> new Form_Pengaturan());
         } else {
-            // Staff: Sell, Customers, and today's sales.
+            // Staff: Sell, Customers, a read-only catalogue, and today's sales.
             pn_menu.add(new MenuItem("Register", false));
             home = navItem(i++, "Sell", () -> new Form_Penjualan());
             navItem(i++, "Customers", () -> new Form_Pelanggan());
+            navItem(i++, "Products", () -> new Form_Barang());
             navItem(i++, "Today's sales", () -> new Form_ReportKaryawan());
         }
 

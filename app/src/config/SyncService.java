@@ -367,6 +367,9 @@ public final class SyncService {
         if ("user_delete".equals(t)) {
             return "/api/sync/users/delete";
         }
+        if ("customer_delete".equals(t)) {
+            return "/api/sync/customers/delete";
+        }
         return "/api/sync/" + t;
     }
 

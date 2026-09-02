@@ -71,7 +71,12 @@ public class Form_Barang extends javax.swing.JPanel {
     private static final String PLACEHOLDER_SUP = "Select supplier";
     private static final String PLACEHOLDER_UNIT = "Select unit";
 
+    /** Staff may browse the catalogue but not change it. */
+    private final boolean canEdit;
+
     public Form_Barang() {
+        String jenis = Main.user.getJenisUser();
+        canEdit = "Owner".equals(jenis) || "PEMILIK".equals(jenis);
         initComponents();
 
         SelectKategori();
@@ -88,6 +93,37 @@ public class Form_Barang extends javax.swing.JPanel {
         txt_id.setEditable(false);
         btn_dapatKode.setVisible(true);
         updateMargin();
+        applyRole();
+    }
+
+    /**
+     * Read-only catalogue for staff: searching, printing and export stay
+     * available, everything that writes is switched off.
+     */
+    private void applyRole() {
+        if (canEdit) {
+            return;
+        }
+        txt_kode.setEditable(false);
+        txt_nama.setEditable(false);
+        txt_beli.setEditable(false);
+        txt_jual.setEditable(false);
+        txt_stok.setEditable(false);
+        cb_kategori.setEnabled(false);
+        cb_merek.setEnabled(false);
+        cb_satuan.setEnabled(false);
+        cb_supplier.setEnabled(false);
+        btn_tambah.setEnabled(false);
+        btn_simpan.setEnabled(false);
+        btn_batal.setEnabled(false);
+        btn_hapus.setEnabled(false);
+        btn_dapatKode.setEnabled(false);
+        btn_importExcel.setEnabled(false);
+        btn_deleteAll.setEnabled(false);
+        btn_simpan.setText("View only");
+        if (lb_editTitle != null) {
+            lb_editTitle.setText("PRODUCT DETAILS");
+        }
     }
 
 
@@ -218,7 +254,8 @@ public class Form_Barang extends javax.swing.JPanel {
     }
 
     private void BtnEnabled(boolean x) {
-        btn_hapus.setEnabled(x);
+        // Selecting a row must not hand Delete back to staff.
+        btn_hapus.setEnabled(x && canEdit);
     }
 
     private void applyListModel(java.sql.ResultSet sql) throws SQLException {

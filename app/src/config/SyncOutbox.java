@@ -163,6 +163,23 @@ public final class SyncOutbox {
         }
     }
 
+    /**
+     * Queue a customer removal. Call before the local DELETE, while the uuid is
+     * still readable. The cloud row must go too, otherwise applyPulledCustomers
+     * re-inserts it on the next pull.
+     */
+    public static void enqueueCustomerDelete(String uuid) {
+        if (uuid == null || uuid.trim().isEmpty()) {
+            return;
+        }
+        String id = uuid.trim();
+        StringBuilder sb = new StringBuilder(64);
+        sb.append('{')
+                .append("\"uuid\":").append(SyncService.jsonString(id))
+                .append('}');
+        SyncService.getInstance().enqueue("customer_delete", id, sb.toString());
+    }
+
     /** Columns the user payload needs; shared by the single and backfill enqueues. */
     private static final String USER_SELECT =
             "SELECT uuid, nama_user, alamat_user, telp_user, username_user, "

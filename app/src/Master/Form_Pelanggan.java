@@ -56,6 +56,11 @@ public class Form_Pelanggan extends javax.swing.JPanel {
     private JButton btn_tambah;
     private JButton btn_simpan;
     private JButton btn_batal;
+    private JButton btn_hapus;
+    /** Removing a customer is owner-only. */
+    private final boolean canDelete =
+            "Owner".equals(Main.user.getJenisUser())
+            || "PEMILIK".equals(Main.user.getJenisUser());
     private JButton btn_cari;
     private JButton btn_refresh;
     private JTable tbl_pelanggan;
@@ -310,6 +315,78 @@ public class Form_Pelanggan extends javax.swing.JPanel {
             lb_editTitle.setText("EDIT CUSTOMER");
         }
         btn_simpan.setText("Update customer");
+    }
+
+    private void deleteCustomer() {
+        String id = txt_id.getText().trim();
+        if (id.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Select a customer from the list first.");
+            return;
+        }
+        int pelangganId;
+        try {
+            pelangganId = Integer.parseInt(id);
+        } catch (NumberFormatException nfe) {
+            return;
+        }
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            Connection conn = Koneksi.getConnection();
+            // penjualan.pelanggan_Id is a plain foreign key with no ON DELETE
+            // rule, so a customer with sales cannot go without rewriting that
+            // history. Say so rather than letting the database throw.
+            ps = conn.prepareStatement("SELECT COUNT(*) FROM penjualan WHERE pelanggan_Id = ?");
+            ps.setInt(1, pelangganId);
+            rs = ps.executeQuery();
+            int sales = rs.next() ? rs.getInt(1) : 0;
+            closeQuietly(rs);
+            rs = null;
+            closeQuietly(ps);
+            ps = null;
+            if (sales > 0) {
+                JOptionPane.showMessageDialog(this,
+                        "This customer is on " + sales + (sales == 1 ? " sale" : " sales")
+                        + " and cannot be deleted without changing that history.",
+                        "Could not delete", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            String nama = txt_nama.getText().trim();
+            int ok = JOptionPane.showConfirmDialog(this,
+                    "Delete " + (nama.isEmpty() ? "this customer" : nama) + "?",
+                    "Confirm", JOptionPane.OK_CANCEL_OPTION);
+            if (ok != JOptionPane.OK_OPTION) {
+                return;
+            }
+
+            // Read the uuid before the row goes, so the delete can be synced.
+            String uuid = null;
+            ps = conn.prepareStatement("SELECT uuid FROM pelanggan WHERE pelanggan_Id = ?");
+            ps.setInt(1, pelangganId);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                uuid = rs.getString("uuid");
+            }
+            closeQuietly(rs);
+            rs = null;
+            closeQuietly(ps);
+            ps = null;
+
+            ps = conn.prepareStatement("DELETE FROM pelanggan WHERE pelanggan_Id = ?");
+            ps.setInt(1, pelangganId);
+            ps.executeUpdate();
+            SyncOutbox.enqueueCustomerDelete(uuid);
+            JOptionPane.showMessageDialog(this, "Customer deleted.");
+            TxtEmpty();
+            btn_simpan.setText("Save customer");
+            GetData();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Could not delete customer: " + e.getMessage());
+        } finally {
+            closeQuietly(rs);
+            closeQuietly(ps);
+        }
     }
 
     private void saveCustomer() {
@@ -601,7 +678,7 @@ public class Form_Pelanggan extends javax.swing.JPanel {
         btn_simpan.setBackground(Color.WHITE);
         btn_simpan.setForeground(UITheme.ACCENT);
         btn_simpan.addActionListener(e -> saveCustomer());
-        JPanel secondary = new JPanel(new GridLayout(1, 1, 8, 0));
+        JPanel secondary = new JPanel(new GridLayout(1, canDelete ? 2 : 1, 8, 0));
         secondary.setOpaque(false);
         secondary.setAlignmentX(Component.LEFT_ALIGNMENT);
         secondary.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
@@ -612,6 +689,11 @@ public class Form_Pelanggan extends javax.swing.JPanel {
             btn_simpan.setText("Save customer");
         });
         secondary.add(btn_batal);
+        if (canDelete) {
+            btn_hapus = outlineBtn("Delete");
+            btn_hapus.addActionListener(e -> deleteCustomer());
+            secondary.add(btn_hapus);
+        }
         actions.add(btn_simpan);
         actions.add(Box.createVerticalStrut(8));
         actions.add(secondary);
